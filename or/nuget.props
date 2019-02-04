@@ -1,0 +1,12 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PackageId>OperationsResearch</PackageId>
+    <Description>A library enabling Operations Research for F# applications.</Description>
+    <Authors>Matthew Moore</Authors>
+    <Copyright>2019</Copyright>
+    <PackageTags>F#, Operations Research</PackageTags>
+    <RepositoryUrl>https://github.com/acco32/Operations-Research</RepositoryUrl>
+    <PackageLicenseUrl>https://github.com/acco32/Operations-Research/blob/master/LICENSE.md</PackageLicenseUrl>
+    <PackageIconUrl></PackageIconUrl>
+  </PropertyGroup>
+</Project>
