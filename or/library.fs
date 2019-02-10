@@ -1,13 +1,19 @@
 namespace Operations.Research
-// open Google.OrTools.LinearSolver
 
 
 module LinearProgramming =
   open Operations.Research.Types
 
-  let Var (name: string) (lowerBound:obj) (upperBound:obj): Variable =
-    match (lowerBound, upperBound) with
-    | (:? int as x1), (:? int as x2) -> Variable.Integer (name, x1, x2)
-    | (:? float as x1), (:? float as x2) -> Variable.Real (name, x1, x2)
-    | (null, null) -> Variable.Boolean name
-    | _ -> failwithf "Unknown variable type. Please check constructor."
+  let x = Variable.Boolean("choice A")
+  let y = Variable.Real("choice B", 0.0, 2.0)
+  let z = Variable.Integer("choice C", 0, 5)
+
+  let sdf1 = 2 * x
+  let sdf2 = -2.0 * x
+  let sdf3 = -5 * y
+
+  let expr = [] + 3*x + 1*z + 2*y + 6*x
+  let con1 = expr <= 6.0
+  let con2 = expr >= 6.0
+
+
