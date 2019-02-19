@@ -3,3 +3,4 @@
 **/bin/**
 build
 .fake
+tools/tusk*

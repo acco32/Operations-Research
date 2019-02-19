@@ -23,9 +23,10 @@ module Types =
 
   type Constraint = Constraint of Expression * lowerBound:float * upperBound:float
 
-  let inline (<=) (e:Expression) (ub:float)  = Constraint(e, Double.NegativeInfinity, ub)
-  let inline (>=) (e:Expression) (lb:float)  = Constraint(e, lb, Double.NegativeInfinity)
-  let inline (=) (e:Expression) (v:float)  = Constraint(e, v, v)
+  let inline (<==) (e:Expression) (ub:float)  = Constraint(e, Double.NegativeInfinity, ub)
+  let inline (>==) (e:Expression) (lb:float)  = Constraint(e, lb, Double.NegativeInfinity)
+  let inline (==) (e:Expression) (v:float)  = Constraint(e, v, v)
+
 
   type SolverParams = {
     Name: string

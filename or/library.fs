@@ -13,7 +13,7 @@ module LinearProgramming =
   let sdf3 = -5 * y
 
   let expr = [] + 3*x + 1*z + 2*y + 6*x
-  let con1 = expr <= 6.0
-  let con2 = expr >= 6.0
+  let con1 = expr <== 6.0
+  let con2 = expr >== 6.0
 
 

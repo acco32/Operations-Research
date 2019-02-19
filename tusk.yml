@@ -1,0 +1,8 @@
+tasks:
+  greet:
+    usage: Say hello to someone
+    options:
+      name:
+        usage: A person to say "Hello" to
+        default: World
+    run: echo "Hello, ${name}!"

@@ -4,4 +4,6 @@ Library wrapper around Google's OrTools specifically for F\# development
 
 ## Development
 
-TBD
+## Install necessary tools
+
+Run the script to `install-task-runner.sh` to install [tusk](https://github.com/rliebz/tusk). This will install the tool nessary for building the application.
