@@ -2,18 +2,31 @@ namespace Operations.Research
 
 
 module LinearProgramming =
+  open System
   open Operations.Research.Types
 
-  let x = Variable.Boolean("choice A")
-  let y = Variable.Real("choice B", 0.0, 2.0)
-  let z = Variable.Integer("choice C", 0, 5)
+  // Create a new Boolean Variable. Initial value is false.
+  let BooleanVariable name = Variable.Boolean(name, false)
 
-  let sdf1 = 2 * x
-  let sdf2 = -2.0 * x
-  let sdf3 = -5 * y
+  // Create a new Integer Variable. Initial value is lower bound.
+  let IntegerVariable name lowerBound upperBound = Variable.Integer(name, lowerBound, upperBound, lowerBound)
 
-  let expr = [] + 3*x + 1*z + 2*y + 6*x
-  let con1 = expr <== 6.0
-  let con2 = expr >== 6.0
+  // Create a new Real Valued Variable. Initial value is lower bound.
+  let RealVariable name lowerBound upperBound = Variable.Real(name, lowerBound, upperBound, lowerBound)
+
+  let inline (*) (coeff:obj) (var:Variable) : Operand =
+      match coeff with
+      | (:? int as i) -> Operand.Integer(i, var)
+      | (:? float as f) -> Operand.Real(f, var)
+
+  type Expression = Operand list
+
+  let inline (+) (ops:Expression) (e:Operand) : Expression = List.append ops [e]
+
+  type Constraint = Constraint of Expression * lowerBound:float * upperBound:float
+
+  let inline (<==) (e:Expression) (ub:float)  = Constraint(e, Double.NegativeInfinity, ub)
+  let inline (>==) (e:Expression) (lb:float)  = Constraint(e, lb, Double.NegativeInfinity)
+  let inline (==) (e:Expression) (v:float)  = Constraint(e, v, v)
 
 
