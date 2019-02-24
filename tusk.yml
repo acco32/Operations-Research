@@ -1,8 +1,27 @@
 tasks:
-  greet:
-    usage: Say hello to someone
-    options:
-      name:
-        usage: A person to say "Hello" to
-        default: World
-    run: echo "Hello, ${name}!"
+  build:
+    usage: Build the application
+    run:
+      - dotnet build
+  test:
+    usage: Run unit tests for entire repository
+    run:
+      - dotnet test
+  clean:
+    usage: Remove all build artifacts
+    run:
+      - dotnet clean
+  # release:
+  #   usage: Build a release version of application
+  #   options:
+  #     name:
+  #       usage: name of output binary
+  #       default: changelog
+  #     version:
+  #       usage: version of application
+  #       default: "local"
+  #   run:
+  #       - sed -i -e "s/0.0.0/${version}/" cmd/info.go
+  #       - dep ensure -vendor-only
+  #       - go build -o build/${name} main.go
+  #       - cp build/${name} tools/${name}

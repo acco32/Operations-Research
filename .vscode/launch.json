@@ -8,7 +8,6 @@
       "name": ".NET Core Launch (console)",
       "type": "coreclr",
       "request": "launch",
-      // "preLaunchTask": "build",
       "program": "${workspaceFolder}/or.test/bin/Debug/netcoreapp2.1/Operations.Research.Test.dll",
       "args": [],
       "cwd": "${workspaceFolder}",
