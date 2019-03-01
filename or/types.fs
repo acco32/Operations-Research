@@ -3,17 +3,41 @@ namespace Operations.Research
 module Types =
   open System
 
+  type BooleanVariableData = {
+    Name: string;
+    Value: bool;
+   }
+
+   type NumberVariableData = {
+     Name:string;
+     LowerBound:float;
+     UpperBound:float;
+     Value: float;
+   }
+
   type Variable =
-    | Boolean of name:string * value:bool
-    | Number of name:string * lowerBound:float * upperBound:float * value:float
+    | Boolean of BooleanVariableData
+    | Number of NumberVariableData
     static member Bool (name:string) =
-      Boolean(name, false)
+      Boolean({Name=name; Value=false})
     static member Num (name:string) (lowerBound:float) (upperBound:float) =
-      Number(name, lowerBound, upperBound, 0.0)
+      Number({Name=name; LowerBound=lowerBound; UpperBound=upperBound; Value=0.0})
     static member (*) (c:float, v:Variable) = Compound(c, v)
-    member this.Set (value) =
-      Boolean("", false)
-      // pattern match on value's type then ensure it is not out of bounds then set
+    static member Set (s:obj) (var:Variable) =
+      match s, var with
+      | (:? bool as b), Boolean({Name=n; Value=v}) -> Boolean({Name=n; Value=b})
+      | (:? float as f), Number({Name=n; LowerBound=lb; UpperBound=ub; Value=v}) -> Number({Name=n; LowerBound=lb; UpperBound=ub; Value=f})
+      | (:? float), Boolean({Name=n; Value=v}) -> failwith "Cannot set Boolean variable with Number value"
+      | (:? bool), Number({Name=n; LowerBound=lb; UpperBound=ub; Value=v}) -> failwith "Cannot set Number variable with Boolean value"
+      | _ -> failwith "cannot set variable with unknown type."
+    member this.BoolData() =
+      match this with
+      | Boolean({Name=n; Value=v}) ->  {Name=n; Value=v}
+      | _ -> failwith "Cannot retrive boolean data"
+    member this.NumberData() =
+      match this with
+      | Number({Name=n; LowerBound=lb; UpperBound=ub; Value=v}) -> {Name=n; LowerBound=lb; UpperBound=ub; Value=v}
+      | _ -> failwith "Cannot retrive number data"
   and Operand =
     | Compound of float * Variable
     | Value of float
