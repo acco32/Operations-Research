@@ -5,15 +5,17 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": ".NET Core Launch (console)",
+      "name": "Debug Test",
       "type": "coreclr",
       "request": "launch",
       "program": "${workspaceFolder}/or.test/bin/Debug/netcoreapp2.1/Operations.Research.Test.dll",
       "args": [],
+      "preLaunchTask": "build",
       "cwd": "${workspaceFolder}",
       "console": "internalConsole",
       "stopAtEntry": true,
-      "internalConsoleOptions": "openOnSessionStart"
+      "internalConsoleOptions": "openOnSessionStart",
+      "enableStepFiltering": false
     }
   ]
 }

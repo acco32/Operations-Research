@@ -43,17 +43,23 @@ module Types =
     | Value of float
     | Expression of Operand list
     static member (+) (o1:Operand, o2:Operand) =
-      match o1,o1 with
+      match o1,o2 with
       | Expression(a), Expression(b) -> Expression( a @ b )
       | Expression(l), Value(v) -> Expression( l @ [Value(v)]  )
       | Expression(l), Compound(c, v) -> Expression( l @ [Compound(c, v)] )
       | Value(v), Expression(l) -> Expression( [Value(v)] @ l)
       | Compound(c, v), Expression(l) -> Expression( [Compound(c, v)] @ l)
+      | Compound(c1, v1), Compound(c2,v2) -> Expression( [Compound(c1, v1); Compound(c2, v2)])
     static member (+) (o:Operand, v:float) = o + Value(v)
     static member (+) (v:float, o:Operand) = Value(v) + o
 
 
-
+  // type SolverParams = {
+  //   Name: string
+  //   Variables: Variable list
+  //   Objective: string
+  //   Constraints: Constraint list
+  // }
 
 
   // let inline (+) (ops:Expression) (e:Operand) : Expression = List.append ops [e]

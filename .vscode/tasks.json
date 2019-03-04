@@ -23,6 +23,16 @@
         "${workspaceFolder}/or.test"
       ],
       "problemMatcher": []
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "group": "build",
+      "command": "dotnet clean",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": []
     }
   ]
 }
