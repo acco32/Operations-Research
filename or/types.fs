@@ -57,21 +57,31 @@ module Types =
     static member (+) (o:Operand, v:float) = o + Value(v)
     static member (+) (v:float, o:Operand) = Value(v) + o
 
-
-  type Constraint = Constraint of Operand * lowerBound:float * upperBound:float
+  type Constraint =
+    | Constraint of Operand * lowerBound:float * upperBound:float
+    with static member op_LessThanOrEqual (op:Operand, f:float) =
+      match op with
+      | Compound(c,v) as con -> Constraint(Expression[con], Double.NegativeInfinity, f)
+      | Expression(l) as exprs -> Constraint(exprs, Double.NegativeInfinity, f)
+    // static member op_GreaterThanOrEqual (o:Operand, f:float) =
+    //   Constraint(o, f, Double.PositiveInfinity)
+    // static member op_Equality (o:Operand, f:float) =
+    //   Constraint(o, f, f)
 
   type SolverParams = {
-    Name: string
-    Variables: Variable list
-    Objective: string
-    Constraints: Constraint list
+    Variables: Variable list option
+    Objective: Operand option
+    Constraints: Constraint list option
   }
+  with
+  static member Default =
+    {Variables=None; Objective=None; Constraints=None}
 
 
-  // let inline (+) (ops:Expression) (e:Operand) : Expression = List.append ops [e]
 
-  // type Constraint = Constraint of Expression * lowerBound:float * upperBound:float
 
-  // let inline (<==) (e:Expression) (ub:float)  = Constraint(e, Double.NegativeInfinity, ub)
-  // let inline (>==) (e:Expression) (lb:float)  = Constraint(e, lb, Double.NegativeInfinity)
-  // let inline (==) (e:Expression) (v:float)  = Constraint(e, v, v)
+
+
+
+
+

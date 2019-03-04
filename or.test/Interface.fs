@@ -116,5 +116,27 @@ module ``Basic Interface`` =
     let invalidValue = true
     shouldFail (fun () -> Variable.Set invalidValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
 
+  [<Fact>]
+  let ``create default solver options should have default values of none`` () =
+    let so = SolverParams.Default
+    so.Variables |> should equal None
+    so.Objective |> should equal None
+    so.Constraints |> should equal None
 
+
+  [<Fact>]
+  let ``create constraint``()=
+    let x = Variable.Num "x" 0. 1.
+    // let n2 = Variable.Num "n2" 0. 1.
+    // let op = 1.0*x
+
+    let c = 1.0*x <= 2.0
+    c |> should be instanceOfType<Constraint>
+
+
+
+
+// https://github.com/google/or-tools/blob/stable/ortools/dotnet/Google.OrTools.FSharp/OrTools.fs
+// https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality.fs
+// https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality-inequality.fs
 
