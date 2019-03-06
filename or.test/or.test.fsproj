@@ -10,8 +10,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Interface.fs" />
-    <Compile Include="Program.fs" />
+    <Compile Include="types.fs" />
+    <Compile Include="model.fs" />
+    <Compile Include="program.fs" />
   </ItemGroup>
 
   <ItemGroup>

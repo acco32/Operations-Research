@@ -57,25 +57,16 @@ module Types =
     static member (+) (o:Operand, v:float) = o + Value(v)
     static member (+) (v:float, o:Operand) = Value(v) + o
 
-  type Constraint =
-    | Constraint of Operand * lowerBound:float * upperBound:float
-    with static member op_LessThanOrEqual (op:Operand, f:float) =
-      match op with
-      | Compound(c,v) as con -> Constraint(Expression[con], Double.NegativeInfinity, f)
-      | Expression(l) as exprs -> Constraint(exprs, Double.NegativeInfinity, f)
-    // static member op_GreaterThanOrEqual (o:Operand, f:float) =
-    //   Constraint(o, f, Double.PositiveInfinity)
-    // static member op_Equality (o:Operand, f:float) =
-    //   Constraint(o, f, f)
+  type Constraint = Constraint of Operand * lowerBound:float * upperBound:float
 
   type SolverParams = {
-    Variables: Variable list option
+    Variables: Variable list
     Objective: Operand option
-    Constraints: Constraint list option
+    Constraints: Constraint list
   }
   with
   static member Default =
-    {Variables=None; Objective=None; Constraints=None}
+    {Variables=List.Empty; Objective=None; Constraints=List.Empty}
 
 
 

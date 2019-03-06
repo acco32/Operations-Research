@@ -1,12 +1,12 @@
 namespace Operations.Research.Test
 
-module ``Basic Interface`` =
+module ``Basic Types`` =
 
   open System
   open Xunit
   open FsUnit.Xunit
   open Operations.Research.Types
-  // open Operations.Research.LinearProgramming
+  open Operations.Research.LinearProgramming
 
   let internal ops lst : (Operand list) =
     match lst with
@@ -119,18 +119,26 @@ module ``Basic Interface`` =
   [<Fact>]
   let ``create default solver options should have default values of none`` () =
     let so = SolverParams.Default
-    so.Variables |> should equal None
+    so.Variables |> should haveLength 0
     so.Objective |> should equal None
-    so.Constraints |> should equal None
-
+    so.Constraints |> should haveLength 0
 
   [<Fact>]
-  let ``create constraint``()=
+  let ``create constraint with less than or equal operator``()=
     let x = Variable.Num "x" 0. 1.
-    // let n2 = Variable.Num "n2" 0. 1.
-    // let op = 1.0*x
+    let c = 1.0*x <== 2.0
+    c |> should be instanceOfType<Constraint>
 
-    let c = 1.0*x <= 2.0
+  [<Fact>]
+  let ``create constraint with greater than or equal operator``()=
+    let x = Variable.Num "x" 0. 1.
+    let c = 1.0*x >== 2.0
+    c |> should be instanceOfType<Constraint>
+
+  [<Fact>]
+  let ``create constraint with equal operator``()=
+    let x = Variable.Num "x" 0. 1.
+    let c = 1.0*x == 2.0
     c |> should be instanceOfType<Constraint>
 
 
