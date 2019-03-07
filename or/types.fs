@@ -59,14 +59,23 @@ module Types =
 
   type Constraint = Constraint of Operand * lowerBound:float * upperBound:float
 
+  type Goal =
+    /// Goal is unset
+    | Unset
+    /// Maximize the Objective Function
+    | Maximize
+    /// Minimize the Objective Function
+    | Minimize
+
   type SolverParams = {
     Variables: Variable list
     Objective: Operand option
     Constraints: Constraint list
+    Goal: Goal
   }
   with
   static member Default =
-    {Variables=List.Empty; Objective=None; Constraints=List.Empty}
+    {Variables=List.Empty; Objective=None; Constraints=List.Empty; Goal=Goal.Unset}
 
 
 

@@ -11,6 +11,7 @@
   <ItemGroup>
     <Compile Include="types.fs" />
     <Compile Include="library.fs" />
+    <Compile Include="solvers/google.fs" />
   </ItemGroup>
 
   <ItemGroup>
