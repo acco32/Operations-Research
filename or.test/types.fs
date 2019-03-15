@@ -6,7 +6,7 @@ module ``Basic Types`` =
   open Xunit
   open FsUnit.Xunit
   open Operations.Research.Types
-  open Operations.Research.LinearProgramming
+  open Operations.Research.Models
 
   let internal ops lst : (Operand list) =
     match lst with
@@ -17,8 +17,8 @@ module ``Basic Types`` =
   let ``create boolean variable with default values``() =
     let varName = "bool"
     let v = Variable.Bool varName
-    v.BoolData().Value |> should equal false
-    v.BoolData().Name |> should equal varName
+    v.Value |> should equal 0.0
+    v.Name |> should equal varName
 
   [<Fact>]
   let ``create number variable with default values``() =
@@ -26,10 +26,10 @@ module ``Basic Types`` =
     let lb = -1.0
     let ub = 2.0
     let v = Variable.Num varName lb ub
-    v.NumberData().LowerBound |> should equal lb
-    v.NumberData().UpperBound |> should equal ub
-    v.NumberData().Value |> should equal 0.0
-    v.NumberData().Name |> should equal varName
+    // v.LowerBound |> should equal lb
+    // v.UpperBound |> should equal ub
+    v.Value |> should equal 0.0
+    v.Name |> should equal varName
 
   [<Fact>]
   let ``create boolean operand`` () =
@@ -87,9 +87,9 @@ module ``Basic Types`` =
     let mutable v = Variable.Num varName lb ub
 
     let newValue = 1.0
-    v.NumberData().Value |> should equal 0.0
+    v.Value |> should equal 0.0
     v <- v |> Variable.Set newValue
-    v.NumberData().Value |> should equal newValue
+    v.Value |> should equal newValue
 
 
   [<Fact>]
@@ -143,7 +143,7 @@ module ``Basic Types`` =
 
 
 
-
+// https://github.com/google/or-tools/blob/stable/examples/contrib/fsProgram.fs
 // https://github.com/google/or-tools/blob/stable/ortools/dotnet/Google.OrTools.FSharp/OrTools.fs
 // https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality.fs
 // https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality-inequality.fs

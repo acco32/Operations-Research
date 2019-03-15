@@ -1,12 +1,12 @@
 namespace Operations.Research.Test
 
-module ``Model`` =
+module ``Models`` =
 
   open System
   open Xunit
   open FsUnit.Xunit
   open Operations.Research.Types
-  open Operations.Research.LinearProgramming
+  open Operations.Research.Models
 
 
   [<Fact>]

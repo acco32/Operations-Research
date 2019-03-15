@@ -1,7 +1,7 @@
 namespace Operations.Research
 
 
-module LinearProgramming =
+module Models =
   open System
   open Operations.Research.Types
 
