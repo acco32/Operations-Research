@@ -26,8 +26,8 @@ module ``Basic Types`` =
     let lb = -1.0
     let ub = 2.0
     let v = Variable.Num varName lb ub
-    // v.LowerBound |> should equal lb
-    // v.UpperBound |> should equal ub
+    v.LowerBound |> should equal lb
+    v.UpperBound |> should equal ub
     v.Value |> should equal 0.0
     v.Name |> should equal varName
 

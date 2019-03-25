@@ -6,15 +6,13 @@ module Google =
   open Operations.Research.Models
   open Google.OrTools.LinearSolver
 
-  let Solve (opts:SolverParams) : Solver =
+  let Solve (opts:SolverParams) : SolverResult =
     let solver = new Solver("", Solver.CLP_LINEAR_PROGRAMMING)
 
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
       match v with
       | Boolean(b) -> solver.MakeBoolVar(b.Name)
       | Number(n) -> solver.MakeNumVar(n.LowerBound, n.UpperBound, n.Name)
-
-    let vars = List.map convertVar opts.Variables
 
     let convertCons (cnst:Operations.Research.Types.Constraint) =
       match cnst with
@@ -27,14 +25,17 @@ module Google =
           | Expression(expr) ->
               expr |> List.iter (fun o ->
                 match o with
-                | Compound(coeff,var) ->
+                | Compound(coeff, var) ->
                     c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
                 // | Value(val) ->
               )
 
-    List.iter convertCons opts.Constraints
+    let vars = List.map convertVar opts.Variables
+    let cons = List.iter convertCons opts.Constraints
 
-    solver
+    let result = solver.Solve()
+
+    {Variables=List.empty; Objective=solver.Objective().Value(); Optimal= result <> Solver.OPTIMAL }
 
 
 

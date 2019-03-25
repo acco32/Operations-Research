@@ -50,6 +50,14 @@ module Types =
       match this with
       | Boolean({Name=n; Value=_}) ->  n
       | Number({Name=n; LowerBound=_; UpperBound=_; Value=_}) -> n
+    member this.UpperBound =
+      match this with
+      | Boolean({Name=_; Value=v}) -> 1.0
+      | Number({Name=_; LowerBound=_; UpperBound=ub; Value=_}) -> ub
+    member this.LowerBound =
+      match this with
+      | Boolean({Name=_; Value=_}) -> 0.0
+      | Number({Name=_; LowerBound=lb; UpperBound=_; Value=_}) -> lb
     member this.Value =
       match this with
       | Boolean({Name=_; Value=v}) ->
