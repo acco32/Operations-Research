@@ -18,6 +18,7 @@ module ``Google Solver`` =
 
     let opts =
       SolverParams.Default
+      |> DecisionVars [x; y; z]
       |> Goal Maximize
       |> Objective  (10.0*x + 6.0*y + 4.0*z)
       |> Constraint (1.0*x + 1.0*y + 1.0*z <== 100.0)

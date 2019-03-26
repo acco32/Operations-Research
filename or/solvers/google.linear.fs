@@ -27,15 +27,32 @@ module Google =
                 match o with
                 | Compound(coeff, var) ->
                     c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
-                // | Value(val) ->
+                // | Value(v) ->
+                //     c.SetCoefficient(solver.LookupVariableOrNull(""), v)
               )
+
+    let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
+      let objective = solver.Objective()
+
+      match objFcn with
+      | Some(Expression(expr)) ->
+          expr |> List.iter (fun o ->
+            match o with
+            | Compound(coeff, var) ->
+                objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
+            // | Value(v) ->
+            //     objective.SetCoefficient(solver.LookupVariableOrNull(""), v)
+          )
+
+      objective
 
     let vars = List.map convertVar opts.Variables
     let cons = List.iter convertCons opts.Constraints
+    let objective = convertObjective opts.Objective
 
     let result = solver.Solve()
 
-    {Variables=List.empty; Objective=solver.Objective().Value(); Optimal= result <> Solver.OPTIMAL }
+    { Variables = List.empty; Objective = solver.Objective().Value(); Optimal = (result == Solver.OPTIMAL) }
 
 
 
