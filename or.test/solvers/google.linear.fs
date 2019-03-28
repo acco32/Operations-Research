@@ -12,19 +12,17 @@ module ``Google Solver`` =
 
   [<Fact>]
   let ``basic linear program``() =
-    let x = Variable.Num "x" 0.0 Double.PositiveInfinity
-    let y = Variable.Num "y" 0.0 Double.PositiveInfinity
-    let z = Variable.Num "z" 0.0 Double.PositiveInfinity
+    let x = Variable.Num "x" 0.0 1.0
+    let y = Variable.Num "y" 0.0 2.0
 
     let opts =
       SolverParams.Default
-      |> DecisionVars [x; y; z]
+      |> DecisionVars [x; y]
       |> Goal Maximize
-      |> Objective  (10.0*x + 6.0*y + 4.0*z)
-      |> Constraint (1.0*x + 1.0*y + 1.0*z <== 100.0)
-      |> Constraint (10.0*x + 4.0*y + 5.0*z <== 600.0)
-      |> Constraint (2.0*x + 2.0*y + 6.0*z <== 300.0)
+      |> Objective  (1.0*x + 1.0*y)
 
     let sol = Solve opts
 
     sol.Optimal |> should be True
+    sol.Objective |> should equal 3.0
+    sol.Error |> should equal None

@@ -7,7 +7,7 @@ module Google =
   open Google.OrTools.LinearSolver
 
   let Solve (opts:SolverParams) : SolverResult =
-    let solver = new Solver("", Solver.CLP_LINEAR_PROGRAMMING)
+    let solver = new Solver("", Solver.GLOP_LINEAR_PROGRAMMING)
 
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
       match v with
@@ -27,8 +27,6 @@ module Google =
                 match o with
                 | Compound(coeff, var) ->
                     c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
-                // | Value(v) ->
-                //     c.SetCoefficient(solver.LookupVariableOrNull(""), v)
               )
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
@@ -40,8 +38,9 @@ module Google =
             match o with
             | Compound(coeff, var) ->
                 objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
-            // | Value(v) ->
-            //     objective.SetCoefficient(solver.LookupVariableOrNull(""), v)
+            | Value(v) ->
+                let var = solver.MakeNumVar(v,v, v.ToString())
+                objective.SetCoefficient(var, 1.0)
           )
 
       objective
@@ -50,9 +49,23 @@ module Google =
     let cons = List.iter convertCons opts.Constraints
     let objective = convertObjective opts.Objective
 
+    match opts.Goal with
+    | Maximize ->
+      objective.SetMaximization()
+    | Minimize ->
+      objective.SetMinimization()
+    | _ ->
+      failwith "Goal cannot be unset"
+
     let result = solver.Solve()
 
-    { Variables = List.empty; Objective = solver.Objective().Value(); Optimal = (result == Solver.OPTIMAL) }
+    match result with
+    | OPTIMAL ->
+      let varValues = vars |> List.map (fun (v:Variable) -> Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )
+      { Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL)); Error = None}
+    | _ as err ->
+      { Variables = List.empty ; Objective = 0.0 ; Optimal = false ; Error = Some(sprintf "Solver returned with error %i" err )}
+
 
 
 

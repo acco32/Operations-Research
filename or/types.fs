@@ -107,6 +107,7 @@ module Types =
     Objective: float;
     Variables: Variable list;
     Optimal: bool;
+    Error: string option;
   }
 
 
