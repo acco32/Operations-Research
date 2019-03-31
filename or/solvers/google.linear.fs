@@ -9,6 +9,8 @@ module Google =
   let Solve (opts:SolverParams) : SolverResult =
     let solver = new Solver("", Solver.GLOP_LINEAR_PROGRAMMING)
 
+    let mutable vars = List.Empty
+
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
       match v with
       | Boolean(b) -> solver.MakeBoolVar(b.Name)
@@ -27,6 +29,10 @@ module Google =
                 match o with
                 | Compound(coeff, var) ->
                     c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
+                | Value(v) ->
+                    let newVar = solver.MakeNumVar(v,v, v.ToString())
+                    vars <- vars@[newVar]
+                    c.SetCoefficient(newVar, 1.0)
               )
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
@@ -39,28 +45,29 @@ module Google =
             | Compound(coeff, var) ->
                 objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
             | Value(v) ->
-                let var = solver.MakeNumVar(v,v, v.ToString())
-                objective.SetCoefficient(var, 1.0)
+                let newVar = solver.MakeNumVar(v,v, v.ToString())
+                vars <- vars @ [newVar]
+                objective.SetCoefficient(newVar, 1.0)
           )
 
       objective
 
-    let vars = List.map convertVar opts.Variables
+    vars <- List.map convertVar opts.Variables
     let cons = List.iter convertCons opts.Constraints
     let objective = convertObjective opts.Objective
 
     match opts.Goal with
     | Maximize ->
-      objective.SetMaximization()
+        objective.SetMaximization()
     | Minimize ->
-      objective.SetMinimization()
+        objective.SetMinimization()
     | _ ->
-      failwith "Goal cannot be unset"
+        failwith "Goal cannot be unset"
 
     let result = solver.Solve()
 
     match result with
-    | OPTIMAL ->
+    | 0 ->
       let varValues = vars |> List.map (fun (v:Variable) -> Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )
       { Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL)); Error = None}
     | _ as err ->

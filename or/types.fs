@@ -79,8 +79,11 @@ module Types =
       | Value(v), Expression(l) -> Expression( [Value(v)] @ l)
       | Compound(c, v), Expression(l) -> Expression( [Compound(c, v)] @ l)
       | Compound(c1, v1), Compound(c2,v2) -> Expression( [Compound(c1, v1); Compound(c2, v2)])
+      | Compound(c, v), Value(vl) -> Expression( [Compound(c, v); Value(vl)])
+      | Value(v), Compound(c1, v1) -> Expression( [Value(v); Compound(c1, v1)])
     static member (+) (o:Operand, v:float) = o + Value(v)
     static member (+) (v:float, o:Operand) = Value(v) + o
+
 
   type Constraint = Constraint of Operand * lowerBound:float * upperBound:float
 

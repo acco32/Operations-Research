@@ -20,7 +20,6 @@
       "command": [
         "dotnet",
         "test",
-        "-v n",
         "${workspaceFolder}/or.test"
       ],
       "problemMatcher": []
