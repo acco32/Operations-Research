@@ -38,21 +38,13 @@ module Types =
       | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
       | (:? bool), Number(_) -> invalidArg "s" "Cannot set Number variable with Boolean value"
       | _ -> failwith "cannot set variable with unknown type"
-    // member this.BoolData() =
-    //   match this with
-    //   | Boolean({Name=n; Value=v}) ->  {Name=n; Value=v}
-    //   | _ -> failwith "Cannot retrive boolean data"
-    // member this.NumberData() =
-    //   match this with
-    //   | Number({Name=n; LowerBound=lb; UpperBound=ub; Value=v}) -> {Name=n; LowerBound=lb; UpperBound=ub; Value=v}
-    //   | _ -> failwith "Cannot retrive number data"
     member this.Name =
       match this with
       | Boolean({Name=n; Value=_}) ->  n
       | Number({Name=n; LowerBound=_; UpperBound=_; Value=_}) -> n
     member this.UpperBound =
       match this with
-      | Boolean({Name=_; Value=v}) -> 1.0
+      | Boolean({Name=_; Value=_}) -> 1.0
       | Number({Name=_; LowerBound=_; UpperBound=ub; Value=_}) -> ub
     member this.LowerBound =
       match this with

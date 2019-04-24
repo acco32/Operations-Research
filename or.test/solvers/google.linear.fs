@@ -76,5 +76,24 @@ module ``Google Solver`` =
     sol.Objective |> should equal 2.0
     sol.Error |> should equal None
 
+  [<Fact>]
+  let ``basic linear program in matrix form``() =
+    let x = Variable.Num "x" 0.0 Double.PositiveInfinity
+    let y = Variable.Num "y" 0.0 Double.PositiveInfinity
 
+    let m = [[2.0; 1.0]; [1.0; 2.0]]
+    let lb = [0.0; 0.0]
+    let ub = [104.0; 76.0]
 
+    let opts =
+      SolverParams.Default
+      |> DecisionVars [x; y]
+      |> Goal Maximize
+      |> Objective  (6.0*x + 11.0*y)
+      |> Matrix m lb ub
+
+    let sol = Solve opts
+
+    sol.Optimal |> should be True
+    sol.Objective |> should equal 440.0
+    sol.Error |> should equal None
