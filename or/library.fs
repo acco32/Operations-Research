@@ -44,14 +44,25 @@ module Models =
   let Matrix (m:float list list) (lb:float list) (ub:float list) (opts:SolverParams) =
 
     let createConstraintFromRow (row:float list) (ub:float) =
-      let N = row.Length
+      // let N = row.Length
       let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (opts.Variables)
 
       List.reduce (+) operands <== ub
 
     let cons = List.map2 (fun row upperBound -> createConstraintFromRow row upperBound) m ub
 
-    {opts with Constraints = cons }
+    {opts with Constraints = cons}
 
+  let MatrixEq (m:float list list) (vec:float list) (opts:SolverParams) =
+
+    let createConstraintFromRow (row:float list) (vecEq:float) =
+      // let N = row.Length
+      let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (opts.Variables)
+
+      List.reduce (+) operands == vecEq
+
+    let cons = List.map2 (fun row vector -> createConstraintFromRow row vector) m vec
+
+    {opts with Constraints = cons}
 
 
