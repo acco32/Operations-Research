@@ -27,7 +27,7 @@ module ``Models`` =
     let y = Variable.Num "b" -4.0 100.0
     let c1 = 1.0*x + (-3.4*y) <== 4.5
     let c2 = 3.0*x + 4.9*y >== 50.0
-    let c3 = 1.0*x + 1.0*y + 6.0 == 5.0
+    let c3 = 1.0*x + 1.0*y + 6.0 === 5.0
 
     let newOpts = opts |> Constraint c1 |> Constraint c2 |> Constraint c3
     newOpts.Constraints |> should haveLength 3

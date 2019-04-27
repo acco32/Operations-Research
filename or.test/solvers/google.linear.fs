@@ -95,6 +95,13 @@ module ``Google Solver`` =
     let sol = Solve opts
 
     sol.Optimal |> should be True
+
+    sol.Variables.[0].Name |> should equal x.Name
+    sol.Variables.[0].Value |> should (equalWithin 0.001) 44.0
+
+    sol.Variables.[1].Name |> should equal y.Name
+    sol.Variables.[1].Value |> should (equalWithin 0.001) 16.0
+
     sol.Objective |> should equal 440.0
     sol.Error |> should equal None
 
@@ -142,4 +149,22 @@ module ``Google Solver`` =
     sol.Variables.[4].Value |> should (equalWithin 0.001) 1.0
 
     sol.Error |> should equal None
+
+  [<Fact>]
+  let ``linear program with infeasible/inconsistent results``() =
+    let x = Variable.Num "x" 0.0 Double.PositiveInfinity
+    let y = Variable.Num "y" 0.0 Double.PositiveInfinity
+
+    let opts =
+      SolverParams.Default
+      |> DecisionVars [x; y]
+      |> Goal Minimize
+      |> Objective  (-2.0*x + 3.0*y)
+      |> Constraint (-1.0*x + 2.0*y <== 2.0)
+      |> Constraint (2.0*x + -1.0*y <== 3.0)
+      |> Constraint (1.0*y >== 4.0)
+
+    let sol = Solve opts
+    printfn "Hello"
+
 

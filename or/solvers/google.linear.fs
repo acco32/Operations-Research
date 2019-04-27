@@ -6,6 +6,52 @@ module Google =
   open Operations.Research.Models
   open Google.OrTools.LinearSolver
 
+
+  type SolverStrategy = {
+    Name:string;
+    Id: int
+  }
+
+  module LinearSolverStrategy =
+    /// Coin-Or (Recommended default)
+    let CLP = {Name="CLP_LINEAR_PROGRAMMING"; Id=0}
+
+    /// GNU Linear Programming Kit
+    let GLPK = {Name="GLPK_LINEAR_PROGRAMMING"; Id=1}
+
+    /// Google Linear Optimization
+    let GLOP = {Name="GLOP_LINEAR_PROGRAMMING"; Id=2}
+
+    /// Gurobi Optimizer
+    let GUROBI = {Name="GUROBI_LINEAR_PROGRAMMING"; Id=6}
+
+    /// IBM CPLEX
+    let CPLEX = {Name="CPLEX_LINEAR_PROGRAMMING"; Id=10}
+
+  module IntegerSolverStrategy =
+    /// Solving Constraint Integer Programs (Recommended default)
+    let SCIP = {Name="SCIP_MIXED_INTEGER_PROGRAMMING"; Id=3}
+
+    /// GNU Linear Programming Kit
+    let GLPK = {Name="GLPK_MIXED_INTEGER_PROGRAMMING"; Id=4}
+
+    /// Coin-Or Branch and Cut
+    let CBC = {Name="CBC_MIXED_INTEGER_PROGRAMMING"; Id=5}
+
+    /// Gurobi Optimizer
+    let GUROBI = {Name="GUROBI_MIXED_INTEGER_PROGRAMMING"; Id=7}
+
+    /// IBM CPLEX
+    let CPLEX = {Name="CPLEX_MIXED_INTEGER_PROGRAMMING"; Id=11}
+
+    /// Binary Optimizer
+    let BOP = {Name="BOP_INTEGER_PROGRAMMING"; Id=12}
+
+  type SolverOptions = {
+    TimeLimit: int;
+    Strategy: SolverStrategy;
+  }
+
   let Solve (opts:SolverParams) : SolverResult =
     let solver = new Solver("", Solver.GLOP_LINEAR_PROGRAMMING)
 
@@ -70,6 +116,8 @@ module Google =
     | 0 ->
       let varValues = vars |> List.map (fun (v:Variable) -> Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )
       { Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL)); Error = None}
+    | 2 ->
+      { Variables = List.empty ; Objective = 0.0 ; Optimal = false ; Error = Some("Problem is Infeasible")}
     | _ as err ->
       { Variables = List.empty ; Objective = 0.0 ; Optimal = false ; Error = Some(sprintf "Solver returned with error %i" err )}
 

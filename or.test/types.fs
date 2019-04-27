@@ -138,7 +138,7 @@ module ``Basic Types`` =
   [<Fact>]
   let ``create constraint with equal operator``()=
     let x = Variable.Num "x" 0. 1.
-    let c = 1.0*x == 2.0
+    let c = 1.0*x === 2.0
     c |> should be instanceOfType<Constraint>
 
 
