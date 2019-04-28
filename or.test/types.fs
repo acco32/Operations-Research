@@ -118,10 +118,10 @@ module ``Basic Types`` =
 
   [<Fact>]
   let ``create default solver options should have default values of none`` () =
-    let so = SolverParams.Default
-    so.Variables |> should haveLength 0
-    so.Objective |> should equal None
-    so.Constraints |> should haveLength 0
+    let mdl = Model.Default
+    mdl.Variables |> should haveLength 0
+    mdl.Objective |> should equal None
+    mdl.Constraints |> should haveLength 0
 
   [<Fact>]
   let ``create constraint with less than or equal operator``()=

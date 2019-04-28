@@ -1,6 +1,5 @@
 namespace Operations.Research.Solvers
 
-
 module Google =
   open Operations.Research.Types
   open Operations.Research.Models
@@ -48,12 +47,19 @@ module Google =
     let BOP = {Name="BOP_INTEGER_PROGRAMMING"; Id=12}
 
   type SolverOptions = {
+    /// Time limit for solver to run. Unit is seconds.
     TimeLimit: int;
+    /// Solver strategy to pass to solver. Can be of type LinearSolverStrategy or IntegerSolverStrategy
     Strategy: SolverStrategy;
   }
+  with
+  static member Default =
+    { TimeLimit=30; Strategy=LinearSolverStrategy.GLOP }
+  end
 
-  let Solve (opts:SolverParams) : SolverResult =
-    let solver = new Solver("", Solver.GLOP_LINEAR_PROGRAMMING)
+  let SolveWithCustomOptions (mdl:Model) (opts:SolverOptions) : SolverResult =
+
+    let solver = new Solver("", opts.Strategy.Id)
 
     let mutable vars = List.Empty
 
@@ -98,11 +104,11 @@ module Google =
 
       objective
 
-    vars <- List.map convertVar opts.Variables
-    let cons = List.iter convertCons opts.Constraints
-    let objective = convertObjective opts.Objective
+    vars <- List.map convertVar mdl.Variables
+    let cons = List.iter convertCons mdl.Constraints
+    let objective = convertObjective mdl.Objective
 
-    match opts.Goal with
+    match mdl.Goal with
     | Maximize ->
         objective.SetMaximization()
     | Minimize ->
@@ -127,7 +133,8 @@ module Google =
     | _ as err ->
       Error({Code=err; Message="Not Solved"})
 
-
+  let Solve (mdl:Model) : SolverResult =
+    SolveWithCustomOptions mdl SolverOptions.Default
 
 
 

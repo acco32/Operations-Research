@@ -22,40 +22,40 @@ module Models =
     | Expression(_) as exprs -> Constraint(exprs, f, f)
     | _ -> failwith "Cannot use value expression"
 
-  let DecisionVars (vars:Variable list) (opts:SolverParams) =
-    {opts with Variables=vars}
+  let DecisionVars (vars:Variable list) (mdl:Model) =
+    {mdl with Variables=vars}
 
-  let Constraint (con:Constraint) (opts:SolverParams) =
-    match opts.Constraints with
-    | [] -> {opts with Constraints=[con]}
-    | cn -> {opts with Constraints=cn |> List.append [con] }
+  let Constraint (con:Constraint) (mdl:Model) =
+    match mdl.Constraints with
+    | [] -> {mdl with Constraints=[con]}
+    | cn -> {mdl with Constraints=cn |> List.append [con] }
 
-  let Objective (obj:Operand) (opts:SolverParams) =
+  let Objective (obj:Operand) (mdl:Model) =
     match obj with
-    | Expression(_) as o -> {opts with Objective=Some(o)}
+    | Expression(_) as o -> {mdl with Objective=Some(o)}
     | _ -> failwith "Expression is the only acceptable Objective Function parameter"
 
-  let Goal (goal:Goal) (opts:SolverParams) =
+  let Goal (goal:Goal) (mdl:Model) =
     match goal with
     | Unset -> failwith "Goal must be set"
-    | _ -> {opts with Goal=goal}
+    | _ -> {mdl with Goal=goal}
 
-  let Matrix (m:float list list) (lb:float list) (ub:float list) (opts:SolverParams) =
+  let Matrix (m:float list list) (lb:float list) (ub:float list) (mdl:Model) =
 
     let createConstraintFromRow (row:float list) (ub:float) =
-      let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (opts.Variables)
+      let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (mdl.Variables)
       List.reduce (+) operands <== ub
 
     let cons = List.map2 (fun row upperBound -> createConstraintFromRow row upperBound) m ub
-    {opts with Constraints = cons}
+    {mdl with Constraints = cons}
 
-  let MatrixEq (m:float list list) (vec:float list) (opts:SolverParams) =
+  let MatrixEq (m:float list list) (vec:float list) (mdl:Model) =
 
     let createConstraintFromRow (row:float list) (vecEq:float) =
-      let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (opts.Variables)
+      let operands = List.map2 (fun (coeff:float) (v:Variable) -> coeff * v) row (mdl.Variables)
       List.reduce (+) operands === vecEq
 
     let cons = List.map2 (fun row vector -> createConstraintFromRow row vector) m vec
-    {opts with Constraints = cons}
+    {mdl with Constraints = cons}
 
 

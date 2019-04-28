@@ -53,11 +53,11 @@ module Types =
     member this.Value =
       match this with
       | Boolean({Name=_; Value=v}) ->
-          match v with
-          | VariableDataValue.Boolean(b) -> Convert.ToDouble(b)
+          let (VariableDataValue.Boolean b) = v
+          Convert.ToDouble(b)
       | Number({Name=_; LowerBound=_; UpperBound=_; Value=v}) ->
-          match v with
-          | VariableDataValue.Number(n) -> n
+          let (VariableDataValue.Number n) = v
+          n
 
   and Operand =
     | Compound of float * Variable
@@ -73,6 +73,7 @@ module Types =
       | Compound(c1, v1), Compound(c2,v2) -> Expression( [Compound(c1, v1); Compound(c2, v2)])
       | Compound(c, v), Value(vl) -> Expression( [Compound(c, v); Value(vl)])
       | Value(v), Compound(c1, v1) -> Expression( [Value(v); Compound(c1, v1)])
+      | _,_ -> failwith "cannot match operand"
     static member (+) (o:Operand, v:float) = o + Value(v)
     static member (+) (v:float, o:Operand) = Value(v) + o
 
@@ -87,7 +88,7 @@ module Types =
     /// Minimize the Objective Function
     | Minimize
 
-  type SolverParams = {
+  type Model = {
     Variables: Variable list
     Objective: Operand option
     Constraints: Constraint list
