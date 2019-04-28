@@ -21,11 +21,11 @@ module ``Google Solver`` =
       |> Goal Maximize
       |> Objective  (1.0*x + 1.0*y)
 
-    let sol = Solve opts
+    let result = Solve opts
 
+    let (Solution sol) = result
     sol.Optimal |> should be True
     sol.Objective |> should equal 3.0
-    sol.Error |> should equal None
 
   [<Fact>]
   let ``basic linear program with constant variable in Objective``() =
@@ -38,11 +38,12 @@ module ``Google Solver`` =
       |> Goal Maximize
       |> Objective  (1.0*x + 1.0*y + 77.0)
 
-    let sol = Solve opts
+    let result = Solve opts
 
+    let (Solution sol) = result
     sol.Optimal |> should be True
     sol.Objective |> should equal 80.0
-    sol.Error |> should equal None
+
 
   [<Fact>]
   let ``basic linear program with boolean variable where we maximize``() =
@@ -54,11 +55,11 @@ module ``Google Solver`` =
       |> Goal Maximize
       |> Objective  (1.0*x + 2.0)
 
-    let sol = Solve opts
+    let result = Solve opts
 
+    let (Solution sol) = result
     sol.Optimal |> should be True
     sol.Objective |> should equal 3.0
-    sol.Error |> should equal None
 
   [<Fact>]
   let ``basic linear program with boolean variable where we minimize``() =
@@ -70,11 +71,12 @@ module ``Google Solver`` =
       |> Goal Minimize
       |> Objective  (1.0*x + 2.0)
 
-    let sol = Solve opts
+    let result = Solve opts
 
+    let (Solution sol) = result
     sol.Optimal |> should be True
     sol.Objective |> should equal 2.0
-    sol.Error |> should equal None
+
 
   [<Fact>]
   let ``basic linear program in matrix form``() =
@@ -92,7 +94,8 @@ module ``Google Solver`` =
       |> Objective  (6.0*x + 11.0*y)
       |> Matrix m lb ub
 
-    let sol = Solve opts
+    let result = Solve opts
+    let (Solution sol) = result
 
     sol.Optimal |> should be True
 
@@ -103,8 +106,6 @@ module ``Google Solver`` =
     sol.Variables.[1].Value |> should (equalWithin 0.001) 16.0
 
     sol.Objective |> should equal 440.0
-    sol.Error |> should equal None
-
 
   [<Fact>]
   let ``linear program in matrix form - equality constraints``() =
@@ -129,7 +130,8 @@ module ``Google Solver`` =
           |> Objective  (2.0*x + 1.0*y)
           |> MatrixEq m eq
 
-    let sol = Solve opts
+    let result = Solve opts
+    let (Solution sol) = result
 
     sol.Objective |> should (equalWithin 0.001) 2.4
 
@@ -148,8 +150,6 @@ module ``Google Solver`` =
     sol.Variables.[4].Name |> should equal s3.Name
     sol.Variables.[4].Value |> should (equalWithin 0.001) 1.0
 
-    sol.Error |> should equal None
-
   [<Fact>]
   let ``linear program with infeasible/inconsistent results``() =
     let x = Variable.Num "x" 0.0 Double.PositiveInfinity
@@ -164,7 +164,9 @@ module ``Google Solver`` =
       |> Constraint (2.0*x + -1.0*y <== 3.0)
       |> Constraint (1.0*y >== 4.0)
 
-    let sol = Solve opts
-    printfn "Hello"
+    let result = Solve opts
+    let (Error err) = result
+
+    err.Code |> should equal 2
 
 

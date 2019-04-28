@@ -98,12 +98,20 @@ module Types =
     {Variables=List.Empty; Objective=None; Constraints=List.Empty; Goal=Goal.Unset}
   end
 
-  type SolverResult = {
+  type SolverSolution = {
     Objective: float;
     Variables: Variable list;
     Optimal: bool;
-    Error: string option;
   }
+
+  type SolverError = {
+    Code: int;
+    Message: string
+  }
+
+  type SolverResult =
+    | Solution of SolverSolution
+    | Error of SolverError
 
 
 

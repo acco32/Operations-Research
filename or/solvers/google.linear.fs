@@ -113,13 +113,19 @@ module Google =
     let result = solver.Solve()
 
     match result with
-    | 0 ->
+    | 0 | 1 ->
       let varValues = vars |> List.map (fun (v:Variable) -> Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )
-      { Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL)); Error = None}
-    | 2 ->
-      { Variables = List.empty ; Objective = 0.0 ; Optimal = false ; Error = Some("Problem is Infeasible")}
+      Solution({ Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL))})
+    | 2 as err ->
+      Error({Code=err; Message="Infeasible"})
+    | 3 as err ->
+      Error({Code=err; Message="Unbounded"})
+    | 4 as err ->
+      Error({Code=err; Message="Abnormal"})
+    | 5 as err ->
+      Error({Code=err; Message="Model Invalid"})
     | _ as err ->
-      { Variables = List.empty ; Objective = 0.0 ; Optimal = false ; Error = Some(sprintf "Solver returned with error %i" err )}
+      Error({Code=err; Message="Not Solved"})
 
 
 
