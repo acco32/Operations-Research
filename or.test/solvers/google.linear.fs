@@ -41,7 +41,6 @@ module ``Google Solver`` =
     result.Sol.Optimal |> should be True
     result.Sol.Objective |> should equal 80.0
 
-
   [<Fact>]
   let ``basic linear program with boolean variable where we maximize``() =
     let x = Variable.Bool "x"
@@ -69,7 +68,6 @@ module ``Google Solver`` =
     let result = Solve mdl
     result.Sol.Optimal |> should be True
     result.Sol.Objective |> should equal 2.0
-
 
   [<Fact>]
   let ``basic linear program in matrix form``() =
@@ -157,4 +155,51 @@ module ``Google Solver`` =
     let result = Solve mdl
     result.Err.Code |> should equal 2
 
+  [<Fact>]
+  let ``integer program with constant in objective function``() =
+    let x = Variable.Num "x" 0.0 Double.PositiveInfinity
+    let y = Variable.Num "y" 0.0 Double.PositiveInfinity
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [x; y]
+      |> Goal Maximize
+      |> Objective  (6.0*x + 2.0*y + 77.0)
+      |> Constraint (3.0*x + 1.0*y <== 48.0)
+      |> Constraint (3.0*x + 4.0*y <== 120.0)
+      |> Constraint (3.0*x + 1.0*y >== 36.0)
+
+    let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
+
+    let result = SolveWithCustomOptions mdl opts
+    result.Sol.Objective |> should (equalWithin 0.001) 173
+
+    result.Sol.Variables.[0].Name |> should equal x.Name
+    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 8.0
+
+    result.Sol.Variables.[1].Name |> should equal y.Name
+    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 24.0
+
+  [<Fact>]
+  let ``linear program with constant in objective function``() =
+    let x = Variable.Num "x" 0.0 Double.PositiveInfinity
+    let y = Variable.Num "y" 0.0 Double.PositiveInfinity
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [x; y]
+      |> Goal Maximize
+      |> Objective  (6.0*x + 2.0*y + 77.0)
+      |> Constraint (3.0*x + 1.0*y <== 48.0)
+      |> Constraint (3.0*x + 4.0*y <== 120.0)
+      |> Constraint (3.0*x + 1.0*y >== 36.0)
+
+    let result = SolveWithCustomOptions mdl SolverOptions.Default
+    result.Sol.Objective |> should (equalWithin 0.001) 173.0
+
+    result.Sol.Variables.[0].Name |> should equal x.Name
+    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 16.0
+
+    result.Sol.Variables.[1].Name |> should equal y.Name
+    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 0.0
 
