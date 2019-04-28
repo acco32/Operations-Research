@@ -112,6 +112,12 @@ module Types =
   type SolverResult =
     | Solution of SolverSolution
     | Error of SolverError
+    member this.Sol : SolverSolution =
+      let (Solution s) = this
+      s
+    member this.Err : SolverError =
+      let (Error e) = this
+      e
 
 
 

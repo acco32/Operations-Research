@@ -23,9 +23,8 @@ module ``Google Solver`` =
 
     let result = Solve opts
 
-    let (Solution sol) = result
-    sol.Optimal |> should be True
-    sol.Objective |> should equal 3.0
+    result.Sol.Optimal |> should be True
+    result.Sol.Objective |> should equal 3.0
 
   [<Fact>]
   let ``basic linear program with constant variable in Objective``() =
@@ -39,10 +38,8 @@ module ``Google Solver`` =
       |> Objective  (1.0*x + 1.0*y + 77.0)
 
     let result = Solve opts
-
-    let (Solution sol) = result
-    sol.Optimal |> should be True
-    sol.Objective |> should equal 80.0
+    result.Sol.Optimal |> should be True
+    result.Sol.Objective |> should equal 80.0
 
 
   [<Fact>]
@@ -56,10 +53,8 @@ module ``Google Solver`` =
       |> Objective  (1.0*x + 2.0)
 
     let result = Solve opts
-
-    let (Solution sol) = result
-    sol.Optimal |> should be True
-    sol.Objective |> should equal 3.0
+    result.Sol.Optimal |> should be True
+    result.Sol.Objective |> should equal 3.0
 
   [<Fact>]
   let ``basic linear program with boolean variable where we minimize``() =
@@ -72,10 +67,8 @@ module ``Google Solver`` =
       |> Objective  (1.0*x + 2.0)
 
     let result = Solve opts
-
-    let (Solution sol) = result
-    sol.Optimal |> should be True
-    sol.Objective |> should equal 2.0
+    result.Sol.Optimal |> should be True
+    result.Sol.Objective |> should equal 2.0
 
 
   [<Fact>]
@@ -95,17 +88,16 @@ module ``Google Solver`` =
       |> Matrix m lb ub
 
     let result = Solve opts
-    let (Solution sol) = result
 
-    sol.Optimal |> should be True
+    result.Sol.Optimal |> should be True
 
-    sol.Variables.[0].Name |> should equal x.Name
-    sol.Variables.[0].Value |> should (equalWithin 0.001) 44.0
+    result.Sol.Variables.[0].Name |> should equal x.Name
+    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 44.0
 
-    sol.Variables.[1].Name |> should equal y.Name
-    sol.Variables.[1].Value |> should (equalWithin 0.001) 16.0
+    result.Sol.Variables.[1].Name |> should equal y.Name
+    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 16.0
 
-    sol.Objective |> should equal 440.0
+    result.Sol.Objective |> should equal 440.0
 
   [<Fact>]
   let ``linear program in matrix form - equality constraints``() =
@@ -131,24 +123,22 @@ module ``Google Solver`` =
           |> MatrixEq m eq
 
     let result = Solve opts
-    let (Solution sol) = result
+    result.Sol.Objective |> should (equalWithin 0.001) 2.4
 
-    sol.Objective |> should (equalWithin 0.001) 2.4
+    result.Sol.Variables.[0].Name |> should equal x.Name
+    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 0.6
 
-    sol.Variables.[0].Name |> should equal x.Name
-    sol.Variables.[0].Value |> should (equalWithin 0.001) 0.6
+    result.Sol.Variables.[1].Name |> should equal y.Name
+    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 1.2
 
-    sol.Variables.[1].Name |> should equal y.Name
-    sol.Variables.[1].Value |> should (equalWithin 0.001) 1.2
+    result.Sol.Variables.[2].Name |> should equal s1.Name
+    result.Sol.Variables.[2].Value |> should (equalWithin 0.001) 0.0
 
-    sol.Variables.[2].Name |> should equal s1.Name
-    sol.Variables.[2].Value |> should (equalWithin 0.001) 0.0
+    result.Sol.Variables.[3].Name |> should equal s2.Name
+    result.Sol.Variables.[3].Value |> should (equalWithin 0.001) 0.0
 
-    sol.Variables.[3].Name |> should equal s2.Name
-    sol.Variables.[3].Value |> should (equalWithin 0.001) 0.0
-
-    sol.Variables.[4].Name |> should equal s3.Name
-    sol.Variables.[4].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.[4].Name |> should equal s3.Name
+    result.Sol.Variables.[4].Value |> should (equalWithin 0.001) 1.0
 
   [<Fact>]
   let ``linear program with infeasible/inconsistent results``() =
@@ -165,8 +155,6 @@ module ``Google Solver`` =
       |> Constraint (1.0*y >== 4.0)
 
     let result = Solve opts
-    let (Error err) = result
-
-    err.Code |> should equal 2
+    result.Err.Code |> should equal 2
 
 
