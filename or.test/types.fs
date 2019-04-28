@@ -141,10 +141,3 @@ module ``Basic Types`` =
     let c = 1.0*x === 2.0
     c |> should be instanceOfType<Constraint>
 
-
-
-// https://github.com/google/or-tools/blob/stable/examples/contrib/fsProgram.fs
-// https://github.com/google/or-tools/blob/stable/ortools/dotnet/Google.OrTools.FSharp/OrTools.fs
-// https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality.fs
-// https://github.com/google/or-tools/blob/stable/examples/contrib/fsequality-inequality.fs
-
