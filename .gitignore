@@ -4,3 +4,5 @@
 build
 .fake
 tools/tusk*
+packages
+VERSION

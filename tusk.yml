@@ -11,17 +11,22 @@ tasks:
     usage: Remove all build artifacts
     run:
       - dotnet clean
-  # release:
-  #   usage: Build a release version of application
-  #   options:
-  #     name:
-  #       usage: name of output binary
-  #       default: changelog
-  #     version:
-  #       usage: version of application
-  #       default: "local"
-  #   run:
-  #       - sed -i -e "s/0.0.0/${version}/" cmd/info.go
-  #       - dep ensure -vendor-only
-  #       - go build -o build/${name} main.go
-  #       - cp build/${name} tools/${name}
+  release:
+    usage: Build a release version of application
+    options:
+      version:
+        usage: version of application
+        default: "0.0.0.0"
+    run:
+      - echo $(git log -n 1 --format=%H) > VERSION
+      - echo ${version} >> VERSION
+      - dotnet build -c Release /property:Version=${version} or
+      - dotnet pack -c Release /property:Version=${version} or
+  publish:
+    usage: Upload the build package to nuget server
+    options:
+      apiKey:
+        usage: the nuget server API key
+        default: ''
+    run:
+      - dotnet nuget push packages/*.nupkg --api-key ${apiKey}

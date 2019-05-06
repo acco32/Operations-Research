@@ -3,10 +3,15 @@
     <PackageId>OperationsResearch</PackageId>
     <Description>A library enabling Operations Research for F# applications.</Description>
     <Authors>Matthew Moore</Authors>
-    <Copyright>2019</Copyright>
-    <PackageTags>F#, Operations Research</PackageTags>
+    <Copyright>Matthew Moore 2019</Copyright>
+    <PackageTags>F#, Operations Research, Mathematics</PackageTags>
     <RepositoryUrl>https://github.com/acco32/Operations-Research</RepositoryUrl>
-    <PackageLicenseUrl>https://github.com/acco32/Operations-Research/blob/master/LICENSE.md</PackageLicenseUrl>
+    <License>https://github.com/acco32/Operations-Research/blob/master/LICENSE.md</License>
     <PackageIconUrl></PackageIconUrl>
+    <PackageOutputPath>../packages</PackageOutputPath>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <Files>
+      <File src="../VERSION" />
+    </Files>
   </PropertyGroup>
 </Project>
