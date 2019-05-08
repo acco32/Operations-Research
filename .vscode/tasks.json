@@ -5,7 +5,11 @@
   "tasks": [
     {
       "label": "build",
-      "command": "dotnet build",
+      "command": [
+        "dotnet",
+        "build",
+        "/nowarn:FS0025"
+      ],
       "type": "shell",
       "group": "build",
       "presentation": {
@@ -20,7 +24,8 @@
       "command": [
         "dotnet",
         "test",
-        "${workspaceFolder}/or.test"
+        "${workspaceFolder}/or.test",
+        "/nowarn:FS0025"
       ],
       "problemMatcher": []
     },

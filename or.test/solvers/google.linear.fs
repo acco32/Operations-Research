@@ -89,11 +89,11 @@ module ``Google Solver`` =
 
     result.Sol.Optimal |> should be True
 
-    result.Sol.Variables.[0].Name |> should equal x.Name
-    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 44.0
+    result.Sol.Variables.["x"].Name |> should equal x.Name
+    result.Sol.Variables.["x"].Value |> should (equalWithin 0.001) 44.0
 
-    result.Sol.Variables.[1].Name |> should equal y.Name
-    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 16.0
+    result.Sol.Variables.["y"].Name |> should equal y.Name
+    result.Sol.Variables.["y"].Value |> should (equalWithin 0.001) 16.0
 
     result.Sol.Objective |> should equal 440.0
 
@@ -123,20 +123,20 @@ module ``Google Solver`` =
     let result = Solve mdl
     result.Sol.Objective |> should (equalWithin 0.001) 2.4
 
-    result.Sol.Variables.[0].Name |> should equal x.Name
-    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 0.6
+    result.Sol.Variables.["x"].Name |> should equal x.Name
+    result.Sol.Variables.["x"].Value |> should (equalWithin 0.001) 0.6
 
-    result.Sol.Variables.[1].Name |> should equal y.Name
-    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 1.2
+    result.Sol.Variables.["y"].Name |> should equal y.Name
+    result.Sol.Variables.["y"].Value |> should (equalWithin 0.001) 1.2
 
-    result.Sol.Variables.[2].Name |> should equal s1.Name
-    result.Sol.Variables.[2].Value |> should (equalWithin 0.001) 0.0
+    result.Sol.Variables.["s1"].Name |> should equal s1.Name
+    result.Sol.Variables.["s1"].Value |> should (equalWithin 0.001) 0.0
 
-    result.Sol.Variables.[3].Name |> should equal s2.Name
-    result.Sol.Variables.[3].Value |> should (equalWithin 0.001) 0.0
+    result.Sol.Variables.["s2"].Name |> should equal s2.Name
+    result.Sol.Variables.["s2"].Value |> should (equalWithin 0.001) 0.0
 
-    result.Sol.Variables.[4].Name |> should equal s3.Name
-    result.Sol.Variables.[4].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["s3"].Name |> should equal s3.Name
+    result.Sol.Variables.["s3"].Value |> should (equalWithin 0.001) 1.0
 
   [<Fact>]
   let ``linear program with infeasible/inconsistent results``() =
@@ -174,11 +174,11 @@ module ``Google Solver`` =
     let result = SolveWithCustomOptions mdl opts
     result.Sol.Objective |> should (equalWithin 0.001) 173
 
-    result.Sol.Variables.[0].Name |> should equal x.Name
-    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 8.0
+    result.Sol.Variables.["x"].Name |> should equal x.Name
+    result.Sol.Variables.["x"].Value |> should (equalWithin 0.001) 8.0
 
-    result.Sol.Variables.[1].Name |> should equal y.Name
-    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 24.0
+    result.Sol.Variables.["y"].Name |> should equal y.Name
+    result.Sol.Variables.["y"].Value |> should (equalWithin 0.001) 24.0
 
   [<Fact>]
   let ``linear program with constant in objective function``() =
@@ -197,9 +197,9 @@ module ``Google Solver`` =
     let result = SolveWithCustomOptions mdl SolverOptions.Default
     result.Sol.Objective |> should (equalWithin 0.001) 173.0
 
-    result.Sol.Variables.[0].Name |> should equal x.Name
-    result.Sol.Variables.[0].Value |> should (equalWithin 0.001) 16.0
+    result.Sol.Variables.["x"].Name |> should equal x.Name
+    result.Sol.Variables.["x"].Value |> should (equalWithin 0.001) 16.0
 
-    result.Sol.Variables.[1].Name |> should equal y.Name
-    result.Sol.Variables.[1].Value |> should (equalWithin 0.001) 0.0
+    result.Sol.Variables.["y"].Name |> should equal y.Name
+    result.Sol.Variables.["y"].Value |> should (equalWithin 0.001) 0.0
 

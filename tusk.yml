@@ -2,7 +2,7 @@ tasks:
   build:
     usage: Build the application
     run:
-      - dotnet build
+      - dotnet build /nowarn:FS0025
   test:
     usage: Run unit tests for entire repository
     run:

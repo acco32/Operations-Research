@@ -101,7 +101,7 @@ module Types =
 
   type SolverSolution = {
     Objective: float;
-    Variables: Variable list;
+    Variables: Map<string, Variable>;
     Optimal: bool;
   }
 

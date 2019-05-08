@@ -1,6 +1,7 @@
 namespace Operations.Research.Solvers
 
 module Google =
+  open System
   open Operations.Research.Types
   open Operations.Research.Models
   open Google.OrTools.LinearSolver
@@ -120,8 +121,8 @@ module Google =
 
     match result with
     | 0 | 1 ->
-      let varValues = vars |> List.map (fun (v:Variable) -> Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )
-      Solution({ Variables = varValues ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL))})
+      let varMap = List.fold (fun (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) -> m.Add( v.Name(), Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )) Map.empty vars
+      Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL))})
     | 2 as err ->
       Error({Code=err; Message="Infeasible"})
     | 3 as err ->
