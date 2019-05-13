@@ -203,3 +203,54 @@ module ``Google Solver`` =
     result.Sol.Variables.["y"].Name |> should equal y.Name
     result.Sol.Variables.["y"].Value |> should (equalWithin 0.001) 0.0
 
+  [<Fact>]
+  let ``maximum flow problem as linear program entered as matrix``()=
+
+    let arc01 = Variable.Num "arc01" 0.0 3.0
+    let arc02 = Variable.Num "arc02" 0.0 2.0
+    let arc03 = Variable.Num "arc03" 0.0 2.0
+    let arc14 = Variable.Num "arc14" 0.0 5.0
+    let arc15 = Variable.Num "arc15" 0.0 1.0
+    let arc24 = Variable.Num "arc24" 0.0 1.0
+    let arc25 = Variable.Num "arc25" 0.0 3.0
+    let arc26 = Variable.Num "arc26" 0.0 1.0
+    let arc35 = Variable.Num "arc35" 0.0 1.0
+    let arc47 = Variable.Num "arc47" 0.0 4.0
+    let arc57 = Variable.Num "arc57" 0.0 2.0
+    let arc67 = Variable.Num "arc67" 0.0 4.0
+
+    let m = [
+        [1.0; 0.0; 0.0; -1.0; -1.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0];
+        [0.0; 1.0; 0.0; 0.0; 0.0; -1.0; -1.0; -1.0; 0.0; 0.0; 0.0; 0.0];
+        [0.0; 0.0; 1.0; 0.0; 0.0; 0.0; 0.0; 0.0; -1.0; 0.0; 0.0; 0.0];
+        [0.0; 0.0; 0.0; 1.0; 0.0; 1.0; 0.0; 0.0; 0.0; -1.0; 0.0; 0.0];
+        [0.0; 0.0; 0.0; 0.0; 1.0; 0.0; 1.0; 0.0; 1.0; 0.0; -1.0; 0.0];
+        [0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 0.0; 1.0; 0.0; 0.0; 0.0; -1.0];
+      ]
+
+    let b = Seq.replicate 6 0.0 |> Seq.toList
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [arc01; arc02; arc03; arc14; arc15; arc24; arc25; arc26; arc35; arc47; arc57; arc67]
+      |> Goal Maximize
+      |> Objective  (1.0*arc01 + 1.0*arc02 + 1.0*arc03)
+      |> MatrixEq m b
+
+    let result = Solve mdl
+
+    result.Sol.Objective |> should (equalWithin 0.001) 6.0
+    result.Sol.Variables.["arc01"].Value |> should (equalWithin 0.001) 3.0
+    result.Sol.Variables.["arc02"].Value |> should (equalWithin 0.001) 2.0
+    result.Sol.Variables.["arc03"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc14"].Value |> should (equalWithin 0.001) 2.0
+    result.Sol.Variables.["arc15"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc24"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc25"].Value |> should (equalWithin 0.001) 0.0
+    result.Sol.Variables.["arc26"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc35"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc47"].Value |> should (equalWithin 0.001) 3.0
+    result.Sol.Variables.["arc57"].Value |> should (equalWithin 0.001) 2.0
+    result.Sol.Variables.["arc67"].Value |> should (equalWithin 0.001) 1.0
+
+

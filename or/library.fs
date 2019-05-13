@@ -58,4 +58,5 @@ module Models =
     let cons = List.map2 (fun row vector -> createConstraintFromRow row vector) m vec
     {mdl with Constraints = cons}
 
-
+  /// Special representation of zero as a Variable
+  let Zero() = Variable.Num (sprintf "Zero-%s" (Guid.NewGuid().ToString("N").Substring(0,8))) 0.0 0.0

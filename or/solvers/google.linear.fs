@@ -54,6 +54,7 @@ module Google =
     Strategy: SolverStrategy;
   }
   with
+  /// Default options to pass to solver
   static member Default =
     { TimeLimit=30; Strategy=LinearSolverStrategy.GLOP }
   end
