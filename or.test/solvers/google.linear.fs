@@ -1,13 +1,13 @@
 namespace Operations.Research.Test
 
-module ``Google Solver`` =
+module ``Google Solver - Linear`` =
 
   open System
   open Xunit
   open FsUnit.Xunit
   open Operations.Research.Types
   open Operations.Research.Models
-  open Operations.Research.Solvers.Google
+  open Operations.Research.Solvers.Google.Linear
 
 
   [<Fact>]

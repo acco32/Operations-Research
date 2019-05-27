@@ -1,6 +1,6 @@
-namespace Operations.Research.Solvers
+namespace Operations.Research.Solvers.Google
 
-module Google =
+module Linear =
   open System
   open Operations.Research.Types
   open Operations.Research.Models
@@ -88,6 +88,7 @@ module Google =
                     vars <- vars@[newVar]
                     c.SetCoefficient(newVar, 1.0)
               )
+          | _ -> ()
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
       let objective = solver.Objective()
