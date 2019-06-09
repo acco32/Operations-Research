@@ -61,7 +61,7 @@ module Linear =
 
   let SolveWithCustomOptions (mdl:Model) (opts:SolverOptions) : SolverResult =
 
-    let solver = new Solver("", opts.Strategy.Id)
+    let solver = Solver.CreateSolver("", opts.Strategy.Name)
 
     let mutable vars = List.Empty
 
@@ -122,19 +122,17 @@ module Linear =
     let result = solver.Solve()
 
     match result with
-    | 0 | 1 ->
+    | Solver.ResultStatus.OPTIMAL | Solver.ResultStatus.FEASIBLE ->
       let varMap = List.fold (fun (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) -> m.Add( v.Name(), Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )) Map.empty vars
-      Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.OPTIMAL))})
-    | 2 as err ->
-      Error({Code=err; Message="Infeasible"})
-    | 3 as err ->
-      Error({Code=err; Message="Unbounded"})
-    | 4 as err ->
-      Error({Code=err; Message="Abnormal"})
-    | 5 as err ->
-      Error({Code=err; Message="Model Invalid"})
+      Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+    | Solver.ResultStatus.INFEASIBLE as err ->
+      Error({Code=int(err); Message="Infeasible"})
+    | Solver.ResultStatus.UNBOUNDED as err ->
+      Error({Code=int(err); Message="Unbounded"})
+    | Solver.ResultStatus.ABNORMAL as err ->
+      Error({Code=int(err); Message="Abnormal"})
     | _ as err ->
-      Error({Code=err; Message="Not Solved"})
+      Error({Code=int(err); Message="Not Solved"})
 
   let Solve (mdl:Model) : SolverResult =
     SolveWithCustomOptions mdl SolverOptions.Default
