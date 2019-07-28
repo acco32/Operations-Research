@@ -243,14 +243,14 @@ module ``Google Solver - Linear`` =
     result.Sol.Variables.["arc01"].Value |> should (equalWithin 0.001) 3.0
     result.Sol.Variables.["arc02"].Value |> should (equalWithin 0.001) 2.0
     result.Sol.Variables.["arc03"].Value |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc14"].Value |> should (equalWithin 0.001) 2.0
-    result.Sol.Variables.["arc15"].Value |> should (equalWithin 0.001) 1.0
+    result.Sol.Variables.["arc14"].Value |> should (equalWithin 0.001) 3.0
+    result.Sol.Variables.["arc15"].Value |> should (equalWithin 0.001) 0.0
     result.Sol.Variables.["arc24"].Value |> should (equalWithin 0.001) 1.0
     result.Sol.Variables.["arc25"].Value |> should (equalWithin 0.001) 0.0
     result.Sol.Variables.["arc26"].Value |> should (equalWithin 0.001) 1.0
     result.Sol.Variables.["arc35"].Value |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc47"].Value |> should (equalWithin 0.001) 3.0
-    result.Sol.Variables.["arc57"].Value |> should (equalWithin 0.001) 2.0
+    result.Sol.Variables.["arc47"].Value |> should (equalWithin 0.001) 4.0
+    result.Sol.Variables.["arc57"].Value |> should (equalWithin 0.001) 1.0
     result.Sol.Variables.["arc67"].Value |> should (equalWithin 0.001) 1.0
 
 
