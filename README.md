@@ -1,6 +1,10 @@
 # Operations-Research
 
-Library wrapper around Google's OrTools specifically for F\# development
+Library to solve operations research problems in F\#. You can specific your objective and constraints and then use one of the underlying solvers to get an answer. The primary solver used is [Google's OrTools](https://developers.google.com/optimization/).
+
+## Solvers
+
+- Linear Programming
 
 ## Development
 
