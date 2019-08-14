@@ -190,9 +190,11 @@ module ``Google Solver - Linear`` =
       |> DecisionVars [x; y]
       |> Goal Maximize
       |> Objective  (6.0*x + 2.0*y + 77.0)
-      |> Constraint (3.0*x + 1.0*y <== 48.0)
-      |> Constraint (3.0*x + 4.0*y <== 120.0)
-      |> Constraint (3.0*x + 1.0*y >== 36.0)
+      |> Constraints [
+        3.0*x + 1.0*y <== 48.0
+        3.0*x + 4.0*y <== 120.0
+        3.0*x + 1.0*y >== 36.0
+      ]
 
     let result = SolveWithCustomOptions mdl SolverOptions.Default
     result.Sol.Objective |> should (equalWithin 0.001) 173.0

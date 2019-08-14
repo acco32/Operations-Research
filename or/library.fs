@@ -30,6 +30,9 @@ module Models =
     | [] -> {mdl with Constraints=[con]}
     | cn -> {mdl with Constraints=cn |> List.append [con] }
 
+  let Constraints (con:Constraint list) (mdl:Model) =
+    {mdl with Constraints=con }
+
   let Objective (obj:Operand) (mdl:Model) =
     match obj with
     | Expression(_) as o -> {mdl with Objective=Some(o)}
