@@ -27,6 +27,7 @@ module Types =
     static member Num (name:string) (lowerBound:float) (upperBound:float) =
       Number({Name=name; LowerBound=lowerBound; UpperBound=upperBound; Value=VariableDataValue.Number(0.0)})
     static member (*) (c:float, v:Variable) = Compound(c, v)
+    static member (*) (v:Variable, c:float) = Compound(c, v)
     static member Set (s:obj) (var:Variable) =
       match s, var with
       | (:? bool as b), Boolean({Name=n; Value=v}) -> Boolean({Name=n; Value=VariableDataValue.Boolean(b)})

@@ -82,7 +82,7 @@ module ``Google Solver - Linear`` =
       Model.Default
       |> DecisionVars [x; y]
       |> Goal Maximize
-      |> Objective  (6.0*x + 11.0*y)
+      |> Objective  (6.0*x + y*11.0)
       |> Matrix m lb ub
 
     let result = Solve mdl
