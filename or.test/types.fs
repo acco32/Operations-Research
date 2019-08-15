@@ -17,7 +17,7 @@ module ``Basic Types`` =
   let ``create boolean variable with default values``() =
     let varName = "bool"
     let v = Variable.Bool varName
-    v.Value |> should equal 0.0
+    v.Value |> should equal (VariableDataValue.Real(Number.Real(0.0)))
     v.Name |> should equal varName
 
   [<Fact>]

@@ -3,20 +3,29 @@ namespace Operations.Research
 module Types =
   open System
 
+  type Number =
+    | Integer of int
+    | Real of float
+
+  type NumberBounds = {
+    Lower: Number
+    Upper: Number
+  }
+
   type VariableDataValue =
     | Boolean of bool
-    | Number of float
+    | Integer of Number
+    | Real of Number
 
   type BooleanVariableData = {
     Name: string;
     Value: VariableDataValue;
    }
 
-   type NumberVariableData = {
-     Name:string;
-     LowerBound:float;
-     UpperBound:float;
-     Value: VariableDataValue;
+  type NumberVariableData = {
+    Name:string
+    Bounds: NumberBounds
+    Value: VariableDataValue
    }
 
   type Variable =
@@ -24,41 +33,58 @@ module Types =
     | Number of NumberVariableData
     static member Bool (name:string) =
       Boolean({Name=name; Value=VariableDataValue.Boolean(false)})
-    static member Num (name:string) (lowerBound:float) (upperBound:float) =
-      Number({Name=name; LowerBound=lowerBound; UpperBound=upperBound; Value=VariableDataValue.Number(0.0)})
-    static member (*) (c:float, v:Variable) = Compound(c, v)
-    static member (*) (v:Variable, c:float) = Compound(c, v)
-    static member Set (s:obj) (var:Variable) =
-      match s, var with
-      | (:? bool as b), Boolean({Name=n; Value=v}) -> Boolean({Name=n; Value=VariableDataValue.Boolean(b)})
-      | (:? float as f), Number({Name=n; LowerBound=lb; UpperBound=ub; Value=VariableDataValue.Number(v)}) ->
-          match f with
-          | x when x <= ub && x >= lb ->
-            Number({Name=n; LowerBound=lb; UpperBound=ub; Value=VariableDataValue.Number(f)})
-          | _ -> invalidArg "s" "Out of Range"
-      | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
-      | (:? bool), Number(_) -> invalidArg "s" "Cannot set Number variable with Boolean value"
-      | _ -> failwith "cannot set variable with unknown type"
+    static member Integer (name:string) =
+      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(int(Int64.MaxValue))}
+      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
+    static member Integer ((name:string), (lowerBound:int), (upperBound:int)) =
+      let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound)}
+      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
+    static member Real (name:string) =
+      let bnd = {Lower=Number.Real(0.0); Upper=Number.Real(Double.PositiveInfinity)}
+      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Real(0.0))})
+    static member Real ((name:string), (lowerBound:float), (upperBound:float)) =
+      let bnd = {Lower=Number.Real(lowerBound); Upper=Number.Real(upperBound)}
+      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Integer(0))})
     member this.Name =
       match this with
       | Boolean({Name=n; Value=_}) ->  n
-      | Number({Name=n; LowerBound=_; UpperBound=_; Value=_}) -> n
+      | Number({Name=n; Bounds=_; Value=_}) -> n
     member this.UpperBound =
       match this with
-      | Boolean({Name=_; Value=_}) -> 1.0
-      | Number({Name=_; LowerBound=_; UpperBound=ub; Value=_}) -> ub
+      | Number({Name=_; Bounds=bnd; Value=_}) -> bnd.Upper
+      | _ -> failwith "can only retrieve bounds for numeric variables"
     member this.LowerBound =
       match this with
-      | Boolean({Name=_; Value=_}) -> 0.0
-      | Number({Name=_; LowerBound=lb; UpperBound=_; Value=_}) -> lb
+      | Number({Name=_; Bounds=bnd; Value=_}) -> bnd.Lower
+      | _ -> failwith "can only retrieve bounds for numeric variables"
+    static member Set (s:obj) (var:Variable) =
+      match s, var with
+      | (:? bool as b), Boolean({Name=n; Value=_}) -> Boolean({Name=n; Value=VariableDataValue.Boolean(b)})
+      | (:? float as f), Number({Name=n; Bounds=b; Value=VariableDataValue.Real(_)}) ->
+          let (Number.Real lb) = b.Lower
+          let (Number.Real ub) = b.Upper
+          match f with
+          | x when x <= ub && x >= lb ->
+            Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Real(f))})
+          | _ -> invalidArg "s" "Out of Range"
+      | (:? int as i), Number({Name=n; Bounds=b; Value=VariableDataValue.Integer(_)}) ->
+          let (Number.Integer lb) = b.Lower
+          let (Number.Integer ub) = b.Upper
+          match i with
+          | x when x <= ub && x >= lb ->
+            Number({Name=n; Bounds=b; Value=VariableDataValue.Integer(Number.Integer(i))})
+          | _ -> invalidArg "s" "Out of Range"
+      | (:? int), Number({Name=_; Bounds=_; Value=VariableDataValue.Real(_)}) -> invalidArg "s" "Cannot set Integer variable with Real value"
+      | (:? float), Number({Name=_; Bounds=_; Value=VariableDataValue.Integer(_)}) -> invalidArg "s" "Cannot set Real variable with Integer value"
+      | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
+      | (:? bool), Number(_) -> invalidArg "s" "Cannot set Number variable with Boolean value"
+      | _ -> failwith "cannot set variable with unknown type"
     member this.Value =
       match this with
-      | Boolean({Name=_; Value=v}) ->
-          let (VariableDataValue.Boolean b) = v
-          Convert.ToDouble(b)
-      | Number({Name=_; LowerBound=_; UpperBound=_; Value=v}) ->
-          let (VariableDataValue.Number n) = v
-          n
+      | Boolean({Name=_; Value=v}) -> v
+      | Number({Name=_; Bounds=_; Value=v}) -> v
+    static member (*) (c:float, v:Variable) = Compound(c, v)
+    static member (*) (v:Variable, c:float) = Compound(c, v)
 
   and Operand =
     | Compound of float * Variable
