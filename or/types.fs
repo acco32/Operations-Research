@@ -6,6 +6,15 @@ module Types =
   type Number =
     | Integer of int
     | Real of float
+    member this.toInt : int =
+      match this with
+      | Integer(i) -> i
+      | Real (i) -> int(i)
+    member this.toFloat : float =
+      match this with
+      | Integer(f) -> float(f)
+      | Real (f) -> f
+
 
   type NumberBounds = {
     Lower: Number
@@ -16,6 +25,14 @@ module Types =
     | Boolean of bool
     | Integer of Number
     | Real of Number
+    member this.Number =
+      match this with
+      | Real(n)| Integer(n) -> n
+      | Boolean(_) -> failwith "Cannot get value"
+    member this.Selected =
+      match this with
+      | Boolean(b) -> b
+      | Real(_)| Integer(_) -> failwith "Cannot get value"
 
   type BooleanVariableData = {
     Name: string;
@@ -79,16 +96,17 @@ module Types =
       | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
       | (:? bool), Number(_) -> invalidArg "s" "Cannot set Number variable with Boolean value"
       | _ -> failwith "cannot set variable with unknown type"
-    member this.Value =
+    member this.Data =
       match this with
-      | Boolean({Name=_; Value=v}) -> v
-      | Number({Name=_; Bounds=_; Value=v}) -> v
-    static member (*) (c:float, v:Variable) = Compound(c, v)
-    static member (*) (v:Variable, c:float) = Compound(c, v)
+      | Boolean({Name=_; Value=v}) | Number({Name=_; Bounds=_; Value=v}) -> v
+    static member (*) (c:float, v:Variable) = Compound(Number.Real(c), v)
+    static member (*) (v:Variable, c:float) = Compound(Number.Real(c), v)
+    static member (*) (c:int, v:Variable) = Compound(Number.Integer(c), v)
+    static member (*) (v:Variable, c:int) = Compound(Number.Integer(c), v)
 
   and Operand =
-    | Compound of float * Variable
-    | Value of float
+    | Compound of Number * Variable
+    | Value of Number
     | Expression of Operand list
     static member (+) (o1:Operand, o2:Operand) =
       match o1,o2 with
@@ -101,8 +119,10 @@ module Types =
       | Compound(c, v), Value(vl) -> Expression( [Compound(c, v); Value(vl)])
       | Value(v), Compound(c1, v1) -> Expression( [Value(v); Compound(c1, v1)])
       | _,_ -> failwith "cannot match operand"
-    static member (+) (o:Operand, v:float) = o + Value(v)
-    static member (+) (v:float, o:Operand) = Value(v) + o
+    static member (+) (o:Operand, v:float) = o + Value(Number.Real(v))
+    static member (+) (v:float, o:Operand) = Value(Number.Real(v)) + o
+    static member (+) (o:Operand, v:int) = o + Value(Number.Integer(v))
+    static member (+) (v:int, o:Operand) = Value(Number.Integer(v)) + o
 
 
   type Constraint = Constraint of Operand * lowerBound:float * upperBound:float

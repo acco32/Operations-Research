@@ -68,7 +68,8 @@ module Linear =
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
       match v with
       | Boolean(b) -> solver.MakeBoolVar(b.Name)
-      | Number(n) -> solver.MakeNumVar(n.LowerBound, n.UpperBound, n.Name)
+      // | Number(n) -> solver.MakeNumVar(n.LowerBound, n.UpperBound, n.Name)
+      | Number(n) -> solver.MakeNumVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
 
     let convertCons (cnst:Operations.Research.Types.Constraint) =
       match cnst with
@@ -82,9 +83,9 @@ module Linear =
               expr |> List.iter (fun o ->
                 match o with
                 | Compound(coeff, var) ->
-                    c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
+                    c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
                 | Value(v) ->
-                    let newVar = solver.MakeNumVar(v,v, v.ToString())
+                    let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
                     vars <- vars@[newVar]
                     c.SetCoefficient(newVar, 1.0)
               )
@@ -98,9 +99,9 @@ module Linear =
           expr |> List.iter (fun o ->
             match o with
             | Compound(coeff, var) ->
-                objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff)
+                objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
             | Value(v) ->
-                let newVar = solver.MakeNumVar(v,v, v.ToString())
+                let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
                 vars <- vars @ [newVar]
                 objective.SetCoefficient(newVar, 1.0)
           )
@@ -123,7 +124,7 @@ module Linear =
 
     match result with
     | Solver.ResultStatus.OPTIMAL | Solver.ResultStatus.FEASIBLE ->
-      let varMap = List.fold (fun (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) -> m.Add( v.Name(), Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Num (v.Name()) (v.Lb()) (v.Ub())) )) Map.empty vars
+      let varMap = List.fold (fun (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) -> m.Add( v.Name(), Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) } )) )) Map.empty vars
       Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
     | Solver.ResultStatus.INFEASIBLE as err ->
       Error({Code=int(err); Message="Infeasible"})

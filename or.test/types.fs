@@ -17,7 +17,7 @@ module ``Basic Types`` =
   let ``create boolean variable with default values``() =
     let varName = "bool"
     let v = Variable.Bool varName
-    v.Value |> should equal (VariableDataValue.Real(Number.Real(0.0)))
+    v.Data.Selected |> should be False
     v.Name |> should equal varName
 
   [<Fact>]
@@ -25,27 +25,30 @@ module ``Basic Types`` =
     let varName = "real"
     let lb = -1.0
     let ub = 2.0
-    let v = Variable.Num varName lb ub
-    v.LowerBound |> should equal lb
-    v.UpperBound |> should equal ub
-    v.Value |> should equal 0.0
+
+    let v = Variable.Real(varName, lb, ub)
+
+    v.LowerBound.toFloat |> should equal (lb)
+    v.UpperBound.toFloat |> should equal (ub)
+
+    v.Data.Number.toFloat |> should equal (0.0)
     v.Name |> should equal varName
 
   [<Fact>]
   let ``create boolean operand`` () =
     let x = Variable.Bool "a"
-    let result = 1.0*x
+    let result = 1*x
     result |> should be instanceOfType<Operand>
 
   [<Fact>]
   let ``create number operand`` () =
-    let x = Variable.Num "a" 0. 1.
+    let x = Variable.Real("a", 0., 1.)
     let result = 1.0*x
     result |> should be instanceOfType<Operand>
 
   [<Fact>]
   let ``create mixed 2-operand expression`` () =
-    let x = Variable.Num "a" 0. 1.
+    let x = Variable.Integer "a"
     let y = Variable.Bool "b"
 
     let op1 = 1.0*x
@@ -62,9 +65,9 @@ module ``Basic Types`` =
 
   [<Fact>]
   let ``create 3-operand expression`` () =
-    let x = Variable.Num "a" 0. 1.
-    let y = Variable.Num "b" 0. 1.
-    let z = Variable.Num "c" 0. 1.
+    let x = Variable.Integer("a", 0, 1)
+    let y = Variable.Real("b", 0., 1.)
+    let z = Variable.Bool("c")
 
     let op1 = 1.0*x
     let op2 = 1.0*y
@@ -84,12 +87,12 @@ module ``Basic Types`` =
     let varName = "real"
     let lb = -1.0
     let ub = 2.0
-    let mutable v = Variable.Num varName lb ub
+    let mutable v = Variable.Real(varName, lb, ub)
 
     let newValue = 1.0
-    v.Value |> should equal 0.0
+    v.Data.Number.toFloat |> should equal 0.0
     v <- v |> Variable.Set newValue
-    v.Value |> should equal newValue
+    v.Data.Number.toFloat |> should equal newValue
 
 
   [<Fact>]
@@ -97,7 +100,7 @@ module ``Basic Types`` =
     let varName = "real"
     let lb = -1.0
     let ub = 2.0
-    let mutable v = Variable.Num varName lb ub
+    let mutable v = Variable.Real(varName, lb, ub)
 
     let outOfBoundsValue = 9.0
     shouldFail (fun () -> Variable.Set outOfBoundsValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
@@ -111,7 +114,7 @@ module ``Basic Types`` =
 
   [<Fact>]
   let ``set number variable throws error if set to boolean`` () =
-    let mutable v = Variable.Num "num" 0. 1.
+    let mutable v = Variable.Integer("num", 0, 1)
 
     let invalidValue = true
     shouldFail (fun () -> Variable.Set invalidValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
@@ -125,19 +128,19 @@ module ``Basic Types`` =
 
   [<Fact>]
   let ``create constraint with less than or equal operator``()=
-    let x = Variable.Num "x" 0. 1.
+    let x = Variable.Real("x", 0., 1.)
     let c = 1.0*x <== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
   let ``create constraint with greater than or equal operator``()=
-    let x = Variable.Num "x" 0. 1.
+    let x = Variable.Real("x", 0., 1.)
     let c = 1.0*x >== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
   let ``create constraint with equal operator``()=
-    let x = Variable.Num "x" 0. 1.
+    let x = Variable.Real("x", 0., 1.)
     let c = 1.0*x === 2.0
     c |> should be instanceOfType<Constraint>
 
