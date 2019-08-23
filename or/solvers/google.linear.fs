@@ -68,14 +68,18 @@ module Linear =
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
       match v with
       | Boolean(b) -> solver.MakeBoolVar(b.Name)
-      // | Number(n) -> solver.MakeNumVar(n.LowerBound, n.UpperBound, n.Name)
-      | Number(n) -> solver.MakeNumVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
+      | Number(n) ->
+          match n.Value.Number with
+          | Number.Real(r) ->
+              solver.MakeNumVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
+          | Number.Integer(i) ->
+              solver.MakeIntVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
 
     let convertCons (cnst:Operations.Research.Types.Constraint) =
       match cnst with
-      | Operations.Research.Types.Constraint(e, lb, ub) ->
+      | Operations.Research.Types.Constraint(e, b) ->
           // e will always be a collection
-          let c = solver.MakeConstraint(lb, ub)
+          let c = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
 
           // go through collection and create the coefficients.
           match e with

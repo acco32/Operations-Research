@@ -4,22 +4,28 @@ module Models =
   open System
   open Operations.Research.Types
 
-  let inline (<==) (op:Operand) (f:float) =
-    match op with
-    | Compound(_,_) as con -> Constraint(Expression[con], Double.NegativeInfinity, f)
-    | Expression(_) as exprs -> Constraint(exprs, Double.NegativeInfinity, f)
+  let inline (<==) (op:Operand) (s:obj) =
+    match op, s with
+    | Compound(_,_) as con, (:? int as i) -> Constraint(Expression[con], {Lower=Number.Integer(0); Upper=Number.Integer(i)})
+    | Compound(_,_) as con, (:? float as f) -> Constraint(Expression[con], {Lower=Number.Real(0.); Upper=Number.Real(f)})
+    | Expression(_) as exprs, (:? int as i)  -> Constraint(exprs, {Lower=Number.Integer(0); Upper=Number.Integer(i)})
+    | Expression(_) as exprs, (:? float as f)  -> Constraint(exprs, {Lower=Number.Real(0.); Upper=Number.Real(f)})
     | _ -> failwith "Cannot use value expression"
 
-  let inline (>==) (op:Operand) (f:float) =
-    match op with
-    | Compound(_,_) as con -> Constraint(Expression[con], f, Double.PositiveInfinity)
-    | Expression(_) as exprs -> Constraint(exprs, f, Double.PositiveInfinity)
+  let inline (>==) (op:Operand) (s:obj) =
+    match op, s with
+    | Compound(_,_) as con, (:? int as i) -> Constraint(Expression[con], {Lower=Number.Integer(i); Upper=Number.Integer(Int32.MaxValue)})
+    | Compound(_,_) as con, (:? float as f) -> Constraint(Expression[con], {Lower=Number.Real(f); Upper=Number.Real(Double.PositiveInfinity)})
+    | Expression(_) as exprs, (:? int as i) -> Constraint(exprs, {Lower=Number.Integer(i); Upper=Number.Integer(Int32.MaxValue)})
+    | Expression(_) as exprs, (:? float as f) -> Constraint(exprs, {Lower=Number.Real(f); Upper=Number.Real(Double.PositiveInfinity)})
     | _ -> failwith "Cannot use value expression"
 
-  let inline (===) (op:Operand) (f:float) =
-    match op with
-    | Compound(_,_) as con -> Constraint(Expression[con], f, f)
-    | Expression(_) as exprs -> Constraint(exprs, f, f)
+  let inline (===) (op:Operand) (s:obj) =
+    match op, s with
+    | Compound(_,_) as con, (:? int as i) -> Constraint(Expression[con], {Lower=Number.Integer(i);  Upper=Number.Integer(i)})
+    | Compound(_,_) as con, (:? float as f) -> Constraint(Expression[con], {Lower=Number.Real(f);  Upper=Number.Real(f)})
+    | Expression(_) as exprs, (:? int as i) -> Constraint(exprs, {Lower=Number.Integer(i); Upper=Number.Integer(i)})
+    | Expression(_) as exprs, (:? float as f) -> Constraint(exprs, {Lower=Number.Real(f); Upper=Number.Real(f)})
     | _ -> failwith "Cannot use value expression"
 
   let DecisionVars (vars:Variable list) (mdl:Model) =
@@ -60,6 +66,3 @@ module Models =
 
     let cons = List.map2 (fun row vector -> createConstraintFromRow row vector) m vec
     {mdl with Constraints = cons}
-
-  /// Special representation of zero as a Variable
-  // let Zero() = Variable.Num (sprintf "Zero-%s" (Guid.NewGuid().ToString("N").Substring(0,8))) 0.0 0.0

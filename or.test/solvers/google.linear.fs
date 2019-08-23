@@ -155,32 +155,32 @@ module ``Google Solver - Linear`` =
     let result = Solve mdl
     result.Err.Code |> should equal 2
 
-  [<Fact>]
-  let ``integer program with constant in objective function``() =
-    let x = Variable.Integer("x")
-    let y = Variable.Real("y")
+  // [<Fact>]
+  // let ``integer program with constant in objective function``() =
+  //   let x = Variable.Integer("x")
+  //   let y = Variable.Integer("y")
 
-    let mdl =
-      Model.Default
-      |> DecisionVars [x; y]
-      |> Goal Maximize
-      |> Objective  (6*x + 2*y + 77)
-      |> Constraints [
-        3*x + 1*y <== 48.0
-        3*x + 4*y <== 120.0
-        3*x + 1*y >== 36.0
-      ]
+  //   let mdl =
+  //     Model.Default
+  //     |> DecisionVars [x; y]
+  //     |> Goal Maximize
+  //     |> Objective  (6*x + 2*y + 77)
+  //     |> Constraints [
+  //       3*x + 1*y <== 48
+  //       3*x + 4*y <== 120
+  //       3*x + 1*y >== 36
+  //     ]
 
-    let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
+  //   let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
 
-    let result = SolveWithCustomOptions mdl opts
-    result.Sol.Objective |> should (equalWithin 0.001) 173
+  //   let result = SolveWithCustomOptions mdl opts
+  //   result.Sol.Objective |> should (equalWithin 0.001) 173
 
-    result.Sol.Variables.["x"].Name |> should equal x.Name
-    result.Sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 8.0
+  //   result.Sol.Variables.["x"].Name |> should equal x.Name
+  //   result.Sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 8.0
 
-    result.Sol.Variables.["y"].Name |> should equal y.Name
-    result.Sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 24.0
+  //   result.Sol.Variables.["y"].Name |> should equal y.Name
+  //   result.Sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 24.0
 
   [<Fact>]
   let ``linear program with constant in objective function``() =

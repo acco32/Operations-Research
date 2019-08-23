@@ -41,13 +41,18 @@ module ``Basic Types`` =
     result |> should be instanceOfType<Operand>
 
   [<Fact>]
-  let ``create number operand`` () =
+  let ``create number (integer) operand`` () =
+    let x = Variable.Integer("a", 0, 1)
+    let result = 1*x
+    result |> should be instanceOfType<Operand>
+
+  let ``create number (float) operand`` () =
     let x = Variable.Real("a", 0., 1.)
-    let result = 1.0*x
+    let result = 1*x
     result |> should be instanceOfType<Operand>
 
   [<Fact>]
-  let ``create mixed 2-operand expression`` () =
+  let ``able to create mixed 2-operand expression`` () =
     let x = Variable.Integer "a"
     let y = Variable.Bool "b"
 
@@ -64,7 +69,7 @@ module ``Basic Types`` =
 
 
   [<Fact>]
-  let ``create 3-operand expression`` () =
+  let ``able to create mixed 3-operand expression`` () =
     let x = Variable.Integer("a", 0, 1)
     let y = Variable.Real("b", 0., 1.)
     let z = Variable.Bool("c")

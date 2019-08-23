@@ -128,7 +128,7 @@ module Types =
     static member (+) (v:int, o:Operand) = Value(Number.Integer(v)) + o
 
 
-  type Constraint = Constraint of Operand * lowerBound:float * upperBound:float
+  type Constraint = Constraint of Operand * bounds:NumberBounds
 
   type Goal =
     /// Goal is unset
