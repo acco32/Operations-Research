@@ -20,6 +20,15 @@ module Types =
     Lower: Number
     Upper: Number
   }
+  with
+  member this.withinBounds (x:obj): bool =
+    match x with
+    | (:? int as i) ->
+        i <= this.Upper.toInt && i >= this.Lower.toInt
+    | (:? float as f) ->
+        f <= this.Upper.toFloat && f >= this.Lower.toFloat
+    | _ -> failwith "Can only parse integer or float values"
+  end
 
   type VariableDataValue =
     | Boolean of bool
@@ -78,19 +87,13 @@ module Types =
       match s, var with
       | (:? bool as b), Boolean({Name=n; Value=_}) -> Boolean({Name=n; Value=VariableDataValue.Boolean(b)})
       | (:? float as f), Number({Name=n; Bounds=b; Value=VariableDataValue.Real(_)}) ->
-          let (Number.Real lb) = b.Lower
-          let (Number.Real ub) = b.Upper
-          match f with
-          | x when x <= ub && x >= lb ->
-            Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Real(f))})
-          | _ -> invalidArg "s" "Out of Range"
+          match b.withinBounds(f) with
+          | true -> Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Real(f))})
+          | false -> invalidArg "s" "Out of Range"
       | (:? int as i), Number({Name=n; Bounds=b; Value=VariableDataValue.Integer(_)}) ->
-          let (Number.Integer lb) = b.Lower
-          let (Number.Integer ub) = b.Upper
-          match i with
-          | x when x <= ub && x >= lb ->
-            Number({Name=n; Bounds=b; Value=VariableDataValue.Integer(Number.Integer(i))})
-          | _ -> invalidArg "s" "Out of Range"
+          match b.withinBounds(i) with
+          | true -> Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Integer(i))})
+          | false -> invalidArg "s" "Out of Range"
       | (:? int), Number({Name=_; Bounds=_; Value=VariableDataValue.Real(_)}) -> invalidArg "s" "Cannot set Integer variable with Real value"
       | (:? float), Number({Name=_; Bounds=_; Value=VariableDataValue.Integer(_)}) -> invalidArg "s" "Cannot set Real variable with Integer value"
       | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
@@ -161,11 +164,13 @@ module Types =
     | Solution of SolverSolution
     | Error of SolverError
     member this.Sol : SolverSolution =
-      let (Solution s) = this
-      s
+      match this with
+      | Solution(s) -> s
+      | _ -> failwith "Unknown error occured"
     member this.Err : SolverError =
-      let (Error e) = this
-      e
+      match this with
+      | Error(e) -> e
+      | _ -> failwith "Unknown error occured"
 
 
 

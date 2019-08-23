@@ -73,7 +73,6 @@ module ``Google Solver - Linear`` =
   let ``basic linear program in matrix form``() =
     let x = Variable.Real("x", 0.0, Double.PositiveInfinity)
     let y = Variable.Real("y")
-    // let y = Variable.Num "y" 0.0 Double.PositiveInfinity
 
     let m = [[2.0; 1.0]; [1.0; 2.0]]
     let lb = [0.0; 0.0]
