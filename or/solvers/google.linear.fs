@@ -136,7 +136,8 @@ module Linear =
 
       let varMap = List.fold createVarMap Map.empty vars
 
-      Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+      Solution({ Variables = varMap ; Objective = Number.Real(solver.Objective().Value()); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+
     | Solver.ResultStatus.INFEASIBLE as err ->
       Error({Code=int(err); Message="Infeasible"})
     | Solver.ResultStatus.UNBOUNDED as err ->

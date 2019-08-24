@@ -150,7 +150,7 @@ module Types =
   end
 
   type SolverSolution = {
-    Objective: float;
+    Objective: Number;
     Variables: Map<string, Variable>;
     Optimal: bool;
   }
@@ -166,11 +166,11 @@ module Types =
     member this.Sol : SolverSolution =
       match this with
       | Solution(s) -> s
-      | _ -> failwith "Unknown error occured"
+      | _ -> failwith "Unknown error occured when retrieving solution"
     member this.Err : SolverError =
       match this with
       | Error(e) -> e
-      | _ -> failwith "Unknown error occured"
+      | _ -> failwith "Unknown error occured when retrieving error information"
 
 
 
