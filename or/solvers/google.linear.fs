@@ -128,7 +128,14 @@ module Linear =
 
     match result with
     | Solver.ResultStatus.OPTIMAL | Solver.ResultStatus.FEASIBLE ->
-      let varMap = List.fold (fun (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) -> m.Add( v.Name(), Operations.Research.Types.Variable.Set (v.SolutionValue()) (Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) } )) )) Map.empty vars
+
+      let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
+        let result = v.SolutionValue()
+        let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) })
+        m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
+
+      let varMap = List.fold createVarMap Map.empty vars
+
       Solution({ Variables = varMap ; Objective = solver.Objective().Value(); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
     | Solver.ResultStatus.INFEASIBLE as err ->
       Error({Code=int(err); Message="Infeasible"})
