@@ -164,23 +164,22 @@ module ``Google Solver - Linear`` =
       Model.Default
       |> DecisionVars [x; y]
       |> Goal Maximize
-      |> Objective  (6*x + 2*y)
+      |> Objective  (1*x + 5*y)
       |> Constraints [
-        3*x + 1*y <== 48
-        3*x + 4*y <== 120
+        1*x + 1*y <== 8
+        (-1*x) + 3*y <== 0
       ]
 
     let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
     let result = SolveWithCustomOptions mdl opts
 
-    printfn "%s" (result.Err.Message)
-    // result.Sol.Objective.toInt |> should equal 173
+    result.Sol.Objective.toInt |> should equal 16
 
-    // result.Sol.Variables.["x"].Name |> should equal x.Name
-    // result.Sol.Variables.["x"].Data.Number.toInt |> should equal 8
+    result.Sol.Variables.["x"].Name |> should equal x.Name
+    result.Sol.Variables.["x"].Data.Number.toInt |> should equal 6
 
-    // result.Sol.Variables.["y"].Name |> should equal y.Name
-    // result.Sol.Variables.["y"].Data.Number.toInt |> should equal 24
+    result.Sol.Variables.["y"].Name |> should equal y.Name
+    result.Sol.Variables.["y"].Data.Number.toInt |> should equal 2
 
   [<Fact>]
   let ``linear program with constant in objective function``() =

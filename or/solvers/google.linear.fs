@@ -63,6 +63,20 @@ module Linear =
 
     let solver = Solver.CreateSolver("", opts.Strategy.Name)
 
+    let (|IntegerStrategy|LinearStrategy|) strtgy =
+      if strtgy = IntegerSolverStrategy.BOP then IntegerStrategy
+      elif strtgy = IntegerSolverStrategy.SCIP then IntegerStrategy
+      elif strtgy = IntegerSolverStrategy.GLPK then IntegerStrategy
+      elif strtgy = IntegerSolverStrategy.GUROBI then IntegerStrategy
+      elif strtgy = IntegerSolverStrategy.CBC then IntegerStrategy
+      elif strtgy = IntegerSolverStrategy.CPLEX then IntegerStrategy
+      elif strtgy = LinearSolverStrategy.CPLEX then LinearStrategy
+      elif strtgy = LinearSolverStrategy.GUROBI then LinearStrategy
+      elif strtgy = LinearSolverStrategy.GLOP then LinearStrategy
+      elif strtgy = LinearSolverStrategy.GLPK then LinearStrategy
+      elif strtgy = LinearSolverStrategy.CLP then LinearStrategy
+      else failwith "Unknown strategy in solver parameters"
+
     let mutable vars = List.Empty
 
     let convertVar (v:Operations.Research.Types.Variable) : Variable =
@@ -129,14 +143,28 @@ module Linear =
     match result with
     | Solver.ResultStatus.OPTIMAL | Solver.ResultStatus.FEASIBLE ->
 
-      let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
-        let result = v.SolutionValue()
-        let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) })
-        m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
+      match opts.Strategy with
+      | LinearStrategy ->
 
-      let varMap = List.fold createVarMap Map.empty vars
+          let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
+            let result = v.SolutionValue()
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) })
+            m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
 
-      Solution({ Variables = varMap ; Objective = Number.Real(solver.Objective().Value()); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+          let varMap = List.fold createVarMap Map.empty vars
+
+          Solution({ Variables = varMap ; Objective = Number.Real(solver.Objective().Value()); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+
+      | IntegerStrategy ->
+
+          let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
+            let result = int(v.SolutionValue())
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub()))}; Value=VariableDataValue.Integer(Number.Integer(0)) })
+            m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
+
+          let varMap = List.fold createVarMap Map.empty vars
+
+          Solution({ Variables = varMap ; Objective = Number.Integer(int(solver.Objective().Value())); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
 
     | Solver.ResultStatus.INFEASIBLE as err ->
       Error({Code=int(err); Message="Infeasible"})

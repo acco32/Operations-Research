@@ -60,7 +60,7 @@ module Types =
     static member Bool (name:string) =
       Boolean({Name=name; Value=VariableDataValue.Boolean(false)})
     static member Integer (name:string) =
-      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(int(Int64.MaxValue))}
+      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(Int32.MaxValue)}
       Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
     static member Integer ((name:string), (lowerBound:int), (upperBound:int)) =
       let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound)}
