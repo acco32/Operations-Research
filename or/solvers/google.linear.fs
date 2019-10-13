@@ -111,6 +111,7 @@ module Linear =
                     let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
                     vars <- vars@[newVar]
                     c.SetCoefficient(newVar, 1.0)
+                | _ -> ()
               )
 
           | Exclude ->
@@ -132,6 +133,7 @@ module Linear =
                     vars <- vars@[newVar]
                     c1.SetCoefficient(newVar, 1.0)
                     c2.SetCoefficient(newVar, 1.0)
+                | _ -> ()
               )
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
@@ -147,6 +149,7 @@ module Linear =
                 let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
                 vars <- vars @ [newVar]
                 objective.SetCoefficient(newVar, 1.0)
+            | _ -> ()
           )
 
       objective

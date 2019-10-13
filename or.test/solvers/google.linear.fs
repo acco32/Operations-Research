@@ -256,4 +256,39 @@ module ``Google Solver - Linear`` =
     result.Sol.Variables.["arc57"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
     result.Sol.Variables.["arc67"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
 
+  [<Fact(Skip="Work In Progress")>]
+  let ``joshua's rats [math15] - integer program with disjunctive contraints``() =
+    let r1 = Variable.Integer("rat 1", 1, 20)
+    let r2 = Variable.Integer("rat 2", 1, 20)
+    let r3 = Variable.Integer("rat 3", 1, 20)
+    let r4 = Variable.Integer("rat 4", 1, 20)
+    let r5 = Variable.Integer("rat 5", 1, 20)
+    let r6 = Variable.Integer("rat 6", 1, 20)
+    let r7 = Variable.Integer("rat 7", 1, 20)
+    let r8 = Variable.Integer("rat 8", 1, 20)
+    let r9 = Variable.Integer("rat 9", 1, 20)
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [r1; r2; r3; r4; r5; r6; r7; r8; r9]
+      |> Goal Minimize
+      |> Objective  (1*r1 + 1*r2 + 1*r3 + 1*r4 + 1*r5 + 1*r6 + 1*r7 + 1*r8 + 1*r9)
+      |> Constraints [
+        1*r2 + (-1)*r1 >== 1
+        1*r3 + (-1)*r2 >== 1
+        1*r4 + (-1)*r3 >== 1
+        1*r5 + (-1)*r4 >== 1
+        1*r6 + (-1)*r5 >== 1
+        1*r7 + (-1)*r6 >== 1
+        1*r8 + (-1)*r7 >== 1
+        1*r9 + (-1)*r8 >== 1
+      ]
+
+    let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
+    let result = SolveWithCustomOptions mdl opts
+
+    result.Sol.Optimal |> should be False
+    result.Sol.Objective.toInt |> should equal 6.0
+    result.Sol.Variables.["rat 1"].Data.Number.toInt |> should equal 3.0
+
 
