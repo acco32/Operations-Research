@@ -92,12 +92,17 @@ module Linear =
     let convertCons (cnst:Operations.Research.Types.Constraint) =
       match cnst with
       | Operations.Research.Types.Constraint(e, b) ->
-          // e will always be a collection
-          let c = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
 
-          // go through collection and create the coefficients.
-          match e with
-          | Expression(expr) ->
+          // e will always be a collection
+          match b.Interval with
+          | Include ->
+              let c = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
+
+              let expr =
+                match e with
+                | Expression(exp) -> exp
+                | _ -> failwith "Can only match on expression"
+
               expr |> List.iter (fun o ->
                 match o with
                 | Compound(coeff, var) ->
@@ -107,7 +112,27 @@ module Linear =
                     vars <- vars@[newVar]
                     c.SetCoefficient(newVar, 1.0)
               )
-          | _ -> ()
+
+          | Exclude ->
+              let c1 = solver.MakeConstraint(Double.NegativeInfinity, b.Upper.toFloat-1.)
+              let c2 = solver.MakeConstraint(b.Lower.toFloat+1., Double.PositiveInfinity)
+
+              let expr =
+                match e with
+                | Expression(exp) -> exp
+                | _ -> failwith "Can only match on expression"
+
+              expr |> List.iter (fun o ->
+                match o with
+                | Compound(coeff, var) ->
+                    c1.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
+                    c2.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
+                | Value(v) ->
+                    let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
+                    vars <- vars@[newVar]
+                    c1.SetCoefficient(newVar, 1.0)
+                    c2.SetCoefficient(newVar, 1.0)
+              )
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
       let objective = solver.Objective()
@@ -148,7 +173,7 @@ module Linear =
 
           let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
             let result = v.SolutionValue()
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub())}; Value=VariableDataValue.Real(Number.Real(0.0)) })
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub()); Interval=Interval.Include}; Value=VariableDataValue.Real(Number.Real(0.0)) })
             m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
 
           let varMap = List.fold createVarMap Map.empty vars
@@ -159,7 +184,7 @@ module Linear =
 
           let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
             let result = int(v.SolutionValue())
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub()))}; Value=VariableDataValue.Integer(Number.Integer(0)) })
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub())); Interval=Interval.Include}; Value=VariableDataValue.Integer(Number.Integer(0)) })
             m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
 
           let varMap = List.fold createVarMap Map.empty vars

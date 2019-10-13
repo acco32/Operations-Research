@@ -16,9 +16,14 @@ module Types =
       | Real (f) -> f
 
 
+  type Interval =
+    | Include
+    | Exclude
+
   type NumberBounds = {
     Lower: Number
     Upper: Number
+    Interval: Interval
   }
   with
   member this.withinBounds (x:obj): bool =
@@ -60,16 +65,16 @@ module Types =
     static member Bool (name:string) =
       Boolean({Name=name; Value=VariableDataValue.Boolean(false)})
     static member Integer (name:string) =
-      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(Int32.MaxValue)}
+      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
     static member Integer ((name:string), (lowerBound:int), (upperBound:int)) =
-      let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound)}
+      let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
     static member Real (name:string) =
-      let bnd = {Lower=Number.Real(0.0); Upper=Number.Real(Double.PositiveInfinity)}
+      let bnd = {Lower=Number.Real(0.0); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Real(0.0))})
     static member Real ((name:string), (lowerBound:float), (upperBound:float)) =
-      let bnd = {Lower=Number.Real(lowerBound); Upper=Number.Real(upperBound)}
+      let bnd = {Lower=Number.Real(lowerBound); Upper=Number.Real(upperBound); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Integer(0))})
     member this.Name =
       match this with
