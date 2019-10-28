@@ -115,8 +115,8 @@ module Linear =
               )
 
           | Exclude ->
-              let c1 = solver.MakeConstraint(Double.NegativeInfinity, b.Upper.toFloat-1.)
-              let c2 = solver.MakeConstraint(b.Lower.toFloat+1., Double.PositiveInfinity)
+              let c1 = solver.MakeConstraint(Double.NegativeInfinity, b.Lower.toFloat-1.)
+              let c2 = solver.MakeConstraint(b.Upper.toFloat+1., Double.PositiveInfinity)
 
               let expr =
                 match e with
