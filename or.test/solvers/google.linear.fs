@@ -23,8 +23,14 @@ module ``Google Solver - Linear`` =
 
     let result = Solve mdl
 
-    result.Sol.Optimal |> should be True
-    result.Sol.Objective.toFloat |> should equal 3.0
+    match result with
+    | Solution sol ->
+        sol.Optimal |> should be True
+        sol.Objective.toFloat |> should equal 3.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
 
   [<Fact>]
   let ``basic linear program with constant variable in Objective``() =
@@ -38,8 +44,14 @@ module ``Google Solver - Linear`` =
       |> Objective  (1*x + 1*y + 77)
 
     let result = Solve mdl
-    result.Sol.Optimal |> should be True
-    result.Sol.Objective.toInt |> should equal 80
+
+    match result with
+    | Solution sol ->
+        sol.Optimal |> should be True
+        sol.Objective.toInt |> should equal 80
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
 
   [<Fact>]
   let ``basic linear program with boolean variable where we maximize``() =
@@ -52,8 +64,13 @@ module ``Google Solver - Linear`` =
       |> Objective  (1.0*x + 2.0)
 
     let result = Solve mdl
-    result.Sol.Optimal |> should be True
-    result.Sol.Objective.toFloat |> should equal 3.0
+
+    match result with
+    | Solution sol ->
+        sol.Optimal |> should be True
+        sol.Objective.toFloat |> should equal 3.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
 
   [<Fact>]
   let ``basic linear program with boolean variable where we minimize``() =
@@ -66,8 +83,13 @@ module ``Google Solver - Linear`` =
       |> Objective  (1.0*x + 2.0)
 
     let result = Solve mdl
-    result.Sol.Optimal |> should be True
-    result.Sol.Objective.toFloat |> should equal 2.0
+    match result with
+    | Solution sol ->
+        sol.Optimal |> should be True
+        sol.Objective.toFloat |> should equal 2.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
 
   [<Fact>]
   let ``basic linear program in matrix form``() =
@@ -87,15 +109,22 @@ module ``Google Solver - Linear`` =
 
     let result = Solve mdl
 
-    result.Sol.Optimal |> should be True
+    match result with
+    | Solution sol ->
+        sol.Optimal |> should be True
 
-    result.Sol.Variables.["x"].Name |> should equal x.Name
-    result.Sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 44.0
+        sol.Variables.["x"].Name |> should equal x.Name
+        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 44.0
 
-    result.Sol.Variables.["y"].Name |> should equal y.Name
-    result.Sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
+        sol.Variables.["y"].Name |> should equal y.Name
+        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
 
-    result.Sol.Objective.toFloat |> should equal 440.0
+        sol.Objective.toFloat |> should equal 440.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
+
 
   [<Fact>]
   let ``linear program in matrix form - equality constraints``() =
@@ -121,22 +150,29 @@ module ``Google Solver - Linear`` =
           |> MatrixEq m eq
 
     let result = Solve mdl
-    result.Sol.Objective.toFloat |> should (equalWithin 0.001) 2.4
 
-    result.Sol.Variables.["x"].Name |> should equal x.Name
-    result.Sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 0.6
+    match result with
+    | Solution sol ->
+        sol.Objective.toFloat |> should (equalWithin 0.001) 2.4
 
-    result.Sol.Variables.["y"].Name |> should equal y.Name
-    result.Sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 1.2
+        sol.Variables.["x"].Name |> should equal x.Name
+        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 0.6
 
-    result.Sol.Variables.["s1"].Name |> should equal s1.Name
-    result.Sol.Variables.["s1"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["y"].Name |> should equal y.Name
+        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 1.2
 
-    result.Sol.Variables.["s2"].Name |> should equal s2.Name
-    result.Sol.Variables.["s2"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["s1"].Name |> should equal s1.Name
+        sol.Variables.["s1"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
 
-    result.Sol.Variables.["s3"].Name |> should equal s3.Name
-    result.Sol.Variables.["s3"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["s2"].Name |> should equal s2.Name
+        sol.Variables.["s2"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+
+        sol.Variables.["s3"].Name |> should equal s3.Name
+        sol.Variables.["s3"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
 
   [<Fact>]
   let ``linear program with infeasible/inconsistent results``() =
@@ -153,7 +189,13 @@ module ``Google Solver - Linear`` =
       |> Constraint (1.0*y >== 4.0)
 
     let result = Solve mdl
-    result.Err.Code |> should equal 2
+
+    match result with
+    | Solution sol ->
+        Assert.True(false, "No solution should be feasible. Something is horribly wrong.")
+    | Error e ->
+        e.Code |> should equal 2
+
 
   [<Fact>]
   let ``integer program``() =
@@ -173,13 +215,19 @@ module ``Google Solver - Linear`` =
     let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
     let result = SolveWithCustomOptions mdl opts
 
-    result.Sol.Objective.toInt |> should equal 16
+    match result with
+    | Solution sol ->
+        sol.Objective.toInt |> should equal 16
 
-    result.Sol.Variables.["x"].Name |> should equal x.Name
-    result.Sol.Variables.["x"].Data.Number.toInt |> should equal 6
+        sol.Variables.["x"].Name |> should equal x.Name
+        sol.Variables.["x"].Data.Number.toInt |> should equal 6
 
-    result.Sol.Variables.["y"].Name |> should equal y.Name
-    result.Sol.Variables.["y"].Data.Number.toInt |> should equal 2
+        sol.Variables.["y"].Name |> should equal y.Name
+        sol.Variables.["y"].Data.Number.toInt |> should equal 2
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
 
   [<Fact>]
   let ``linear program with constant in objective function``() =
@@ -198,13 +246,20 @@ module ``Google Solver - Linear`` =
       ]
 
     let result = SolveWithCustomOptions mdl SolverOptions.Default
-    result.Sol.Objective.toFloat |> should (equalWithin 0.001) 173.0
 
-    result.Sol.Variables.["x"].Name |> should equal x.Name
-    result.Sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
+    match result with
+    | Solution sol ->
+        sol.Objective.toFloat |> should (equalWithin 0.001) 173.0
 
-    result.Sol.Variables.["y"].Name |> should equal y.Name
-    result.Sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["x"].Name |> should equal x.Name
+        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
+
+        sol.Variables.["y"].Name |> should equal y.Name
+        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
 
   [<Fact>]
   let ``maximum flow problem as linear program entered as matrix``()=
@@ -242,19 +297,25 @@ module ``Google Solver - Linear`` =
 
     let result = Solve mdl
 
-    result.Sol.Objective.toFloat |> should (equalWithin 0.001) 6.0
-    result.Sol.Variables.["arc01"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
-    result.Sol.Variables.["arc02"].Data.Number.toFloat |> should (equalWithin 0.001) 2.0
-    result.Sol.Variables.["arc03"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc14"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
-    result.Sol.Variables.["arc15"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
-    result.Sol.Variables.["arc24"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc25"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
-    result.Sol.Variables.["arc26"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc35"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc47"].Data.Number.toFloat |> should (equalWithin 0.001) 4.0
-    result.Sol.Variables.["arc57"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-    result.Sol.Variables.["arc67"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+    match result with
+    | Solution sol ->
+        sol.Objective.toFloat |> should (equalWithin 0.001) 6.0
+        sol.Variables.["arc01"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
+        sol.Variables.["arc02"].Data.Number.toFloat |> should (equalWithin 0.001) 2.0
+        sol.Variables.["arc03"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc14"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
+        sol.Variables.["arc15"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["arc24"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc25"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["arc26"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc35"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc47"].Data.Number.toFloat |> should (equalWithin 0.001) 4.0
+        sol.Variables.["arc57"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc67"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+
 
   [<Fact(Skip="Work In Progress")>]
   let ``joshua's rats [math15] - integer program with disjunctive contraints``() =
