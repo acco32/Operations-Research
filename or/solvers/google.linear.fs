@@ -92,8 +92,6 @@ module Linear =
     let convertCons (cnst:Operations.Research.Types.Constraint) =
       match cnst with
       | Operations.Research.Types.Constraint(e, b) ->
-
-          // e will always be a collection
           match b.Interval with
           | Include ->
               let c = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
@@ -115,26 +113,7 @@ module Linear =
               )
 
           | Exclude ->
-              let c1 = solver.MakeConstraint(Double.NegativeInfinity, b.Lower.toFloat-1.)
-              let c2 = solver.MakeConstraint(b.Upper.toFloat+1., Double.PositiveInfinity)
-
-              let expr =
-                match e with
-                | Expression(exp) -> exp
-                | _ -> failwith "Can only match on expression"
-
-              expr |> List.iter (fun o ->
-                match o with
-                | Compound(coeff, var) ->
-                    c1.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
-                    c2.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
-                | Value(v) ->
-                    let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
-                    vars <- vars@[newVar]
-                    c1.SetCoefficient(newVar, 1.0)
-                    c2.SetCoefficient(newVar, 1.0)
-                | _ -> ()
-              )
+              failwithf "Constraint not valid for this type of strategy: %s" opts.Strategy.Name
 
     let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
       let objective = solver.Objective()

@@ -107,10 +107,10 @@ module Types =
     member this.Data =
       match this with
       | Boolean({Name=_; Value=v}) | Number({Name=_; Bounds=_; Value=v}) -> v
-    static member (*) (c:float, v:Variable) = Compound(Number.Real(c), v)
-    static member (*) (v:Variable, c:float) = Compound(Number.Real(c), v)
-    static member (*) (c:int, v:Variable) = Compound(Number.Integer(c), v)
-    static member (*) (v:Variable, c:int) = Compound(Number.Integer(c), v)
+    static member (*) (c:float, v:Variable) = Expression([Compound(Number.Real(c), v)])
+    static member (*) (v:Variable, c:float) = Expression([Compound(Number.Real(c), v)])
+    static member (*) (c:int, v:Variable) = Expression([Compound(Number.Integer(c), v)])
+    static member (*) (v:Variable, c:int) = Expression([Compound(Number.Integer(c), v)])
 
   and Operand =
     | Compound of Number * Variable
@@ -120,12 +120,7 @@ module Types =
       match o1,o2 with
       | Expression(a), Expression(b) -> Expression( a @ b )
       | Expression(l), Value(v) -> Expression( l @ [Value(v)]  )
-      | Expression(l), Compound(c, v) -> Expression( l @ [Compound(c, v)] )
       | Value(v), Expression(l) -> Expression( [Value(v)] @ l)
-      | Compound(c, v), Expression(l) -> Expression( [Compound(c, v)] @ l)
-      | Compound(c1, v1), Compound(c2,v2) -> Expression( [Compound(c1, v1); Compound(c2, v2)])
-      | Compound(c, v), Value(vl) -> Expression( [Compound(c, v); Value(vl)])
-      | Value(v), Compound(c1, v1) -> Expression( [Value(v); Compound(c1, v1)])
       | _,_ -> failwith "cannot match operand"
     static member (+) (o:Operand, v:float) = o + Value(Number.Real(v))
     static member (+) (v:float, o:Operand) = Value(Number.Real(v)) + o

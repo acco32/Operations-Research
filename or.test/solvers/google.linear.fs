@@ -317,56 +317,21 @@ module ``Google Solver - Linear`` =
 
 
 
-  [<Fact(Skip="Work In Progress")>]
-  let ``joshua's rats [math15] - integer program with disjunctive contraints``() =
-    let r1 = Variable.Integer("rat 1", 1, 20)
-    let r2 = Variable.Integer("rat 2", 1, 20)
-    let r3 = Variable.Integer("rat 3", 1, 20)
-    let r4 = Variable.Integer("rat 4", 1, 20)
-    let r5 = Variable.Integer("rat 5", 1, 20)
-    let r6 = Variable.Integer("rat 6", 1, 20)
-    let r7 = Variable.Integer("rat 7", 1, 20)
-    let r8 = Variable.Integer("rat 8", 1, 20)
-    let r9 = Variable.Integer("rat 9", 1, 20)
+  [<Fact>]
+  let ``linear program with disjunctive constraint throws error``()=
+    let x = Variable.Integer("x", -6, 6)
+    let y = Variable.Integer("y", -6, 6)
 
-    let vars = [r1; r2; r3; r4; r5; r6; r7; r8; r9]
+    Assert.Throws<Exception>(fun() ->
+      let mdl = Model.Default
+                  |> DecisionVars [x; y]
+                  |> Goal Maximize
+                  |> Objective (-0.5*x + 1*y + -2)
+                  |> Constraints [
+                    1*x =/= 2
+                  ]
+      let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.CBC }
+      let result = SolveWithCustomOptions mdl opts
 
-    let mdl =
-      Model.Default
-      |> DecisionVars vars
-      |> Goal Minimize
-      |> Objective (1*r1 + 1*r2 + 1*r3 + 1*r4 + 1*r5 + 1*r6 + 1*r7 + 1*r8 + 1*r9)
-
-    let ineqCons = [
-      1*r9 + (-1)*r8 >== 1
-      1*r8 + (-1)*r7 >== 1
-      1*r7 + (-1)*r6 >== 1
-      1*r6 + (-1)*r5 >== 1
-      1*r5 + (-1)*r4 >== 1
-      1*r4 + (-1)*r3 >== 1
-      1*r3 + (-1)*r2 >== 1
-      1*r2 + (-1)*r1 >== 1
-    ]
-
-    let disjuctCons =
-      let mutable tmp = List.empty
-      let N = 9
-      for r = N downto 1 do
-        for j = N downto 1 do
-          for i = N downto 1 do
-            if (r > j && j > i) then
-              tmp <- List.append tmp [(1*vars.[r-1] + 1*vars.[i-1] + (-2)*vars.[j-1] =/= 0)]
-
-      tmp
-
-    let mdlP = mdl |> Constraints (ineqCons @ disjuctCons)
-
-    let opts = { SolverOptions.Default with Strategy=IntegerSolverStrategy.SCIP }
-    let result = SolveWithCustomOptions mdlP opts
-
-    printf "%A" result
-    // result.Sol.Optimal |> should be False
-    // result.Sol.Objective.toInt |> should equal 6.0
-    // result.Sol.Variables.["rat 1"].Data.Number.toInt |> should equal 3.0
-
-
+      printf "Should have thrown error but got to this message instead."
+    )

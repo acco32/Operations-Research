@@ -8,9 +8,9 @@ module ``Basic Types`` =
   open Operations.Research.Types
   open Operations.Research.Models
 
-  let internal ops lst : (Operand list) =
-    match lst with
-    | Expression(l) -> l
+  // let internal ops lst : (Operand list) =
+  //   match lst with
+  //   | Expression(l) -> l
 
 
   [<Fact>]
@@ -62,10 +62,15 @@ module ``Basic Types`` =
     let result = op1 + op2
     result |> should be instanceOfType<Operand>
 
-    let operands = ops result
-    operands |> List.length |> should equal 2
-    operands |> List.contains op1 |> should be True
-    operands |> List.contains op2 |> should be True
+    match result with
+    | Expression e ->
+        e |> should haveLength 2
+    | _ -> Assert.False(true, "Should be an expression of length 2")
+
+    // let operands = ops result
+    // operands |> List.length |> should equal 2
+    // operands |> List.contains op1 |> should be True
+    // operands |> List.contains op2 |> should be True
 
 
   [<Fact>]
@@ -74,18 +79,18 @@ module ``Basic Types`` =
     let y = Variable.Real("b", 0., 1.)
     let z = Variable.Bool("c")
 
-    let op1 = 1.0*x
-    let op2 = 1.0*y
-    let op3 = 1.0*z
+    let op1 = 1*x
+    let op2 = 1*y
+    let op3 = 1*z
 
     let result = op1 + op2 + op3
     result |> should be instanceOfType<Operand>
 
-    let operands = ops result
-    operands |> should haveLength 3
-    operands |> List.contains op1 |> should be True
-    operands |> List.contains op2 |> should be True
-    operands |> List.contains op3 |> should be True
+    match result with
+    | Expression e ->
+        e |> should haveLength 3
+    | _ -> Assert.False(true, "Should be an expression of length 3")
+
 
   [<Fact>]
   let ``set number variable`` () =
@@ -149,9 +154,11 @@ module ``Basic Types`` =
     let c = 1.0*x === 2.0
     c |> should be instanceOfType<Constraint>
 
-  [<Fact(Skip="Doesn't fail on specified exception even though expected failure occurs")>]
+  [<Fact>]
   let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
     let x = Variable.Real("x", 0., 1.)
-    shouldFail (fun () -> 1*x =/= 2 |> should throw typeof<ArgumentException> )
+    Assert.Throws<Exception>( fun () ->
+        1*x =/= 2.0 |> ignore
+    )
 
 
