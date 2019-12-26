@@ -160,5 +160,3 @@ module ``Basic Types`` =
     Assert.Throws<Exception>( fun () ->
         1*x =/= 2.0 |> ignore
     )
-
-

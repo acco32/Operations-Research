@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <GenerateProgramFile>false</GenerateProgramFile>
     <AssemblyName>Operations.Research.Test</AssemblyName>
   </PropertyGroup>
@@ -10,6 +10,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="types2.fs" />
     <Compile Include="types.fs" />
     <Compile Include="model.fs" />
     <Compile Include="solvers/google.linear.fs" />
