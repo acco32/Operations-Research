@@ -93,20 +93,99 @@ module Types2 =
           | 1 -> Number({Name=n; Bounds=b;Value=Number.Integer(1)})
           | 0 -> Number({Name=n; Bounds=b;Value=Number.Integer(0)})
           | _ -> failwith "Only 1 or 0 are acceptable values"
-      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? int as i) -> Number({Name=n; Bounds=b;Value=Number.Integer(i)})
-      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? float as f) -> Number({Name=n; Bounds=b;Value=Number.Real(f)})
-      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? int as i) -> Number({Name=n; Bounds=b;Value=Number.Real(float(i))})
-      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? float as f) -> Number({Name=n; Bounds=b;Value=Number.Integer(int(f))})
+      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? int as i) ->
+          match b.withinBounds(i) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Integer(i)})
+          | false -> invalidArg "s" "Out of Range"
+      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? float as f) ->
+          match b.withinBounds(f) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Real(f)})
+          | false -> invalidArg "s" "Out of Range"
+      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? int as i) ->
+          match b.withinBounds(i) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Real(float(i))})
+          | false -> invalidArg "s" "Out of Range"
+      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? float as f) ->
+          match b.withinBounds(f) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Integer(int(f))})
+          | false -> invalidArg "s" "Out of Range"
       | _ -> failwith "Unable to set variable"
-
-
-  type Operand2 =
+    static member (*) (c:float, v:Variable2) =
+      let exp = Expression2.New()
+      {
+        exp with
+          Statement = exp.Statement@[CoefficientArgument(Number.Real(c), v)];
+          Variables = exp.Variables.Add(v.Name, v)
+      }
+    static member (*) (c:int, v:Variable2) =
+      let exp = Expression2.New()
+      {
+        exp with
+          Statement = exp.Statement@[CoefficientArgument(Number.Integer(c), v)];
+          Variables = exp.Variables.Add(v.Name, v)
+      }
+    static member (+) ((arg1:Variable2), (arg2:Variable2)) : Expression2 =
+      let exp = Expression2.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Argument(arg2)];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.Name, arg2)
+      }
+    static member (+) ((arg1:Variable2), (arg2:int)) : Expression2 =
+      let exp = Expression2.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Constant(Number.Integer(arg2))];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.ToString(), Variable2.Integer(arg2.ToString(), arg2, arg2))
+      }
+    static member (+) ((arg1:Variable2), (arg2:float)) : Expression2 =
+      let exp = Expression2.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Constant(Number.Real(arg2))];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.ToString(), Variable2.Real(arg2.ToString(), arg2, arg2))
+      }
+    static member (+) ((arg1:Variable2), (arg2:Expression2)) : Expression2 =
+      {
+        arg2 with
+          Statement = [Argument(arg1)]@arg2.Statement;
+          Variables = arg2.Variables.Add(arg1.Name, arg1)
+      }
+    static member (+) ((arg1:Expression2), (arg2:Variable2)) : Expression2 =
+      {
+        arg1 with
+          Statement = arg1.Statement@[Argument(arg2)]
+          Variables = arg1.Variables.Add(arg2.Name, arg2)
+      }
+  and Operand2 =
     | Constant of Number
-    | Variable of Variable2
-    | CoefficientVariable of Number * Variable2
-
-  type Expression =
-    Operand2 list
-
+    | Argument of Variable2
+    | CoefficientArgument of Number * Variable2
+  and Expression2 = {
+    Statement: Operand2 list
+    Variables: Map<string, Variable2>
+  }
+  with
+  static member New() = {Statement=List.empty; Variables=Map.empty}
+  static member Eval (var:Map<string, Variable2>) (exp:Expression2): Number =
+    failwith "Not Implemented Yet"
+  static member (+) ((arg1:Expression2), (arg2:Expression2)) : Expression2 =
+    {
+      arg1 with
+        Statement = arg1.Statement@arg2.Statement
+        Variables = Map.fold (fun acc key value -> Map.add key value acc) arg1.Variables arg2.Variables
+    }
+  static member (+) ((arg1:Expression2), (arg2:int)) : Expression2 =
+    {
+      arg1 with
+        Statement = arg1.Statement@[Constant(Number.Integer(arg2))]
+        Variables = arg1.Variables.Add(arg2.ToString(), Variable2.Integer(arg2.ToString(), arg2, arg2))
+    }
+  static member (+) ((arg1:Expression2), (arg2:float)) : Expression2 =
+    {
+      arg1 with
+        Statement = arg1.Statement@[Constant(Number.Real(arg2))]
+        Variables = arg1.Variables.Add(arg2.ToString(), Variable2.Real(arg2.ToString(), arg2, arg2))
+    }
 
 
