@@ -167,8 +167,25 @@ module Types2 =
   }
   with
   static member New() = {Statement=List.empty; Variables=Map.empty}
-  static member Eval (var:Map<string, Variable2>) (exp:Expression2): Number =
-    failwith "Not Implemented Yet"
+  static member Eval (vars:Set<Variable2>) (exp:Expression2): Number =
+    if vars.IsEmpty then invalidArg "vars" "Set cannot be empty"
+
+    let tmp = List.map (fun (v:Variable2) ->  exp.Variables.ContainsKey(v.Name) ) (vars |> Set.toList)
+    let allVariablesPresent = tmp |> List.reduce (&&)
+    if not allVariablesPresent then invalidArg "vars" "one (or many) input variable names do not match expression variable names"
+
+    let ans = (exp.Statement) |> List.map ( fun (v:Operand2) ->
+      match v with
+      | Constant(c) -> c.toInt
+      | Argument(a) ->
+          let ap = List.find (fun (f:Variable2) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
+          ap.Data.toInt
+      | CoefficientArgument(c,a) ->
+          let ap = List.find (fun (f:Variable2) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
+          c.toInt * ap.Data.toInt
+    )
+
+    Number.Integer(ans |> List.reduce (+))
   static member (+) ((arg1:Expression2), (arg2:Expression2)) : Expression2 =
     {
       arg1 with
@@ -187,5 +204,3 @@ module Types2 =
         Statement = arg1.Statement@[Constant(Number.Real(arg2))]
         Variables = arg1.Variables.Add(arg2.ToString(), Variable2.Real(arg2.ToString(), arg2, arg2))
     }
-
-

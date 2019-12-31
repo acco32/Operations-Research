@@ -140,6 +140,20 @@ module ``Basic Types 2`` =
     let invalidValue = true
     shouldFail (fun () -> v.Set invalidValue |> should throw typeof<System.ArgumentOutOfRangeException> )
 
+  [<Fact>]
+  let ``evaluate an expression with with all operand types``() =
+    let x = Variable2.Integer "a"
+    let y = Variable2.Integer "b"
+
+    let value = 5
+    let domain = Set.ofList [x.Set(value); y.Set(value)]
+    let expression = x + 2*y + 10
+
+    let coDomain = expression |> Expression2.Eval(domain)
+
+    coDomain |> should be instanceOfType<Number>
+    coDomain.toInt |> should equal 25
+
   // [<Fact>]
   // let ``create default solver options should have default values of none`` () =
   //   let mdl = Model.Default
