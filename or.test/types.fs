@@ -1,6 +1,6 @@
 namespace Operations.Research.Test
 
-module ``Basic Types`` =
+module ``Basic Types 2`` =
 
   open System
   open Xunit
@@ -8,16 +8,14 @@ module ``Basic Types`` =
   open Operations.Research.Types
   open Operations.Research.Models
 
-  // let internal ops lst : (Operand list) =
-  //   match lst with
-  //   | Expression(l) -> l
-
-
   [<Fact>]
   let ``create boolean variable with default values``() =
     let varName = "bool"
     let v = Variable.Bool varName
-    v.Data.Selected |> should be False
+
+    v.Data.toInt |> should equal 0
+    v.Data.toFloat |> should equal 0.0
+    v.State |> should be False
     v.Name |> should equal varName
 
   [<Fact>]
@@ -31,65 +29,78 @@ module ``Basic Types`` =
     v.LowerBound.toFloat |> should equal (lb)
     v.UpperBound.toFloat |> should equal (ub)
 
-    v.Data.Number.toFloat |> should equal (0.0)
+    v.Data.toFloat |> should equal (0.0)
     v.Name |> should equal varName
 
   [<Fact>]
   let ``create boolean operand`` () =
     let x = Variable.Bool "a"
     let result = 1*x
-    result |> should be instanceOfType<Operand>
+    result |> should be instanceOfType<Expression>
 
   [<Fact>]
   let ``create number (integer) operand`` () =
     let x = Variable.Integer("a", 0, 1)
     let result = 1*x
-    result |> should be instanceOfType<Operand>
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 1
 
+
+  [<Fact>]
   let ``create number (float) operand`` () =
     let x = Variable.Real("a", 0., 1.)
     let result = 1*x
-    result |> should be instanceOfType<Operand>
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 1
+
 
   [<Fact>]
-  let ``able to create mixed 2-operand expression`` () =
+  let ``add two (integer) variables and create an expression``() =
     let x = Variable.Integer "a"
-    let y = Variable.Bool "b"
+    let y = Variable.Integer "b"
 
-    let op1 = 1.0*x
-    let op2 = 1.0*y
-
-    let result = op1 + op2
-    result |> should be instanceOfType<Operand>
-
-    match result with
-    | Expression e ->
-        e |> should haveLength 2
-    | _ -> Assert.False(true, "Should be an expression of length 2")
-
-    // let operands = ops result
-    // operands |> List.length |> should equal 2
-    // operands |> List.contains op1 |> should be True
-    // operands |> List.contains op2 |> should be True
+    let result = x + y
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 2
 
 
   [<Fact>]
-  let ``able to create mixed 3-operand expression`` () =
-    let x = Variable.Integer("a", 0, 1)
-    let y = Variable.Real("b", 0., 1.)
-    let z = Variable.Bool("c")
+  let ``add number variable (integer) and constant should create an expression``() =
+    let x = Variable.Integer "a"
 
-    let op1 = 1*x
-    let op2 = 1*y
-    let op3 = 1*z
+    let result = x + 77
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 2
 
-    let result = op1 + op2 + op3
-    result |> should be instanceOfType<Operand>
 
-    match result with
-    | Expression e ->
-        e |> should haveLength 3
-    | _ -> Assert.False(true, "Should be an expression of length 3")
+  [<Fact>]
+  let ``add number variable (real) and constant should create an expression``() =
+    let x = Variable.Real "a"
+
+    let result = x + 77.0
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 2
+
+
+  [<Fact>]
+  let ``add number variable (real) and coefficient-variable (real) should create an expression``() =
+    let x = Variable.Real "a"
+    let y = Variable.Real "b"
+
+    let result = x + 2*y
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 2
+
+
+  [<Fact>]
+  let ``create a multi-variable expression from integer variables`` () =
+    let x = Variable.Integer("a", 0, 10)
+    let y = Variable.Integer("b", 0, 10)
+    let z = Variable.Integer("c", 0, 10)
+
+    let result = x + 2*y + 5*z + 80
+    result |> should be instanceOfType<Expression>
+    result.Statement |> should haveLength 4
 
 
   [<Fact>]
@@ -100,9 +111,9 @@ module ``Basic Types`` =
     let mutable v = Variable.Real(varName, lb, ub)
 
     let newValue = 1.0
-    v.Data.Number.toFloat |> should equal 0.0
-    v <- v |> Variable.Set newValue
-    v.Data.Number.toFloat |> should equal newValue
+    v.Data.toFloat |> should equal 0.0
+    v <- v.Set(newValue)
+    v.Data.toFloat |> should equal newValue
 
 
   [<Fact>]
@@ -110,53 +121,69 @@ module ``Basic Types`` =
     let varName = "real"
     let lb = -1.0
     let ub = 2.0
-    let mutable v = Variable.Real(varName, lb, ub)
+    let v = Variable.Real(varName, lb, ub)
 
     let outOfBoundsValue = 9.0
-    shouldFail (fun () -> Variable.Set outOfBoundsValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
+    shouldFail (fun () -> v.Set outOfBoundsValue |> should throw typeof<System.ArgumentOutOfRangeException> )
 
   [<Fact>]
   let ``set boolean variable throws error if set to number`` () =
-    let mutable v = Variable.Bool "bool"
+    let v = Variable.Bool "bool"
 
     let invalidValue = 9.0
-    shouldFail (fun () -> Variable.Set invalidValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
+    shouldFail (fun () -> v.Set invalidValue |> should throw typeof<System.ArgumentOutOfRangeException> )
 
   [<Fact>]
   let ``set number variable throws error if set to boolean`` () =
-    let mutable v = Variable.Integer("num", 0, 1)
+    let v = Variable.Integer("num", 0, 1)
 
     let invalidValue = true
-    shouldFail (fun () -> Variable.Set invalidValue v |> should throw typeof<System.ArgumentOutOfRangeException> )
+    shouldFail (fun () -> v.Set invalidValue |> should throw typeof<System.ArgumentOutOfRangeException> )
 
   [<Fact>]
-  let ``create default solver options should have default values of none`` () =
-    let mdl = Model.Default
-    mdl.Variables |> should haveLength 0
-    mdl.Objective |> should equal None
-    mdl.Constraints |> should haveLength 0
+  let ``evaluate an expression with with all operand types``() =
+    let x = Variable.Integer "a"
+    let y = Variable.Integer "b"
 
-  [<Fact>]
-  let ``create constraint with less than or equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
-    let c = 1.0*x <== 2.0
-    c |> should be instanceOfType<Constraint>
+    let value = 5
+    let domain = Set.ofList [x.Set(value); y.Set(value)]
+    let expression = x + 2*y + 10
 
-  [<Fact>]
-  let ``create constraint with greater than or equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
-    let c = 1.0*x >== 2.0
-    c |> should be instanceOfType<Constraint>
+    let coDomain = expression |> Expression.Eval(domain)
 
-  [<Fact>]
-  let ``create constraint with equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
-    let c = 1.0*x === 2.0
-    c |> should be instanceOfType<Constraint>
+    coDomain |> should be instanceOfType<Number>
+    coDomain.toInt |> should equal 25
 
-  [<Fact>]
-  let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
-    let x = Variable.Real("x", 0., 1.)
-    Assert.Throws<Exception>( fun () ->
-        1*x =/= 2.0 |> ignore
-    )
+  // [<Fact>]
+  // let ``create default solver options should have default values of none`` () =
+  //   let mdl = Model.Default
+  //   mdl.Variables |> should haveLength 0
+  //   mdl.Objective |> should equal None
+  //   mdl.Constraints |> should haveLength 0
+
+  // [<Fact>]
+  // let ``create constraint with less than or equal operator``()=
+  //   let x = Variable.Real("x", 0., 1.)
+  //   let c = 1.0*x <== 2.0
+  //   c |> should be instanceOfType<Constraint>
+
+  // [<Fact>]
+  // let ``create constraint with greater than or equal operator``()=
+  //   let x = Variable.Real("x", 0., 1.)
+  //   let c = 1.0*x >== 2.0
+  //   c |> should be instanceOfType<Constraint>
+
+  // [<Fact>]
+  // let ``create constraint with equal operator``()=
+  //   let x = Variable.Real("x", 0., 1.)
+  //   let c = 1.0*x === 2.0
+  //   c |> should be instanceOfType<Constraint>
+
+  // [<Fact>]
+  // let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
+  //   let x = Variable.Real("x", 0., 1.)
+  //   Assert.Throws<Exception>( fun () ->
+  //       1*x =/= 2.0 |> ignore
+  //   )
+
+

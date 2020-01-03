@@ -40,6 +40,6 @@ module ``Models`` =
     let obj = 1.0*x + 0.4*y
 
     let newMdl = mdl |> Objective obj
-    newMdl.Objective.Value |> should be instanceOfType<Operand>
+    newMdl.Objective.Value |> should be instanceOfType<Expression>
 
 

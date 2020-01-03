@@ -10,10 +10,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="types2.fs" />
     <Compile Include="types.fs" />
     <Compile Include="model.fs" />
-    <Compile Include="solvers/google.linear.fs" />
+    <!-- <Compile Include="solvers/google.linear.fs" /> -->
     <Compile Include="program.fs" />
   </ItemGroup>
 

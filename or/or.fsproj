@@ -10,10 +10,9 @@
   <Import Project="nuget.props" />
 
   <ItemGroup>
-    <Compile Include="types2.fs" />
     <Compile Include="types.fs" />
     <Compile Include="library.fs" />
-    <Compile Include="solvers/google.linear.fs" />
+    <!-- <Compile Include="solvers/google.linear.fs" /> -->
   </ItemGroup>
 
   <ItemGroup>
