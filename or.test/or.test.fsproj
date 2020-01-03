@@ -12,7 +12,7 @@
   <ItemGroup>
     <Compile Include="types.fs" />
     <Compile Include="model.fs" />
-    <!-- <Compile Include="solvers/google.linear.fs" /> -->
+    <Compile Include="solvers/google.linear.fs" />
     <Compile Include="program.fs" />
   </ItemGroup>
 

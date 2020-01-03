@@ -83,7 +83,7 @@ module Linear =
       match v with
       | Boolean(b) -> solver.MakeBoolVar(b.Name)
       | Number(n) ->
-          match n.Value.Number with
+          match n.Value with
           | Number.Real(r) ->
               solver.MakeNumVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
           | Number.Integer(i) ->
@@ -94,44 +94,43 @@ module Linear =
       | Operations.Research.Types.Constraint(e, b) ->
           match b.Interval with
           | Include ->
-              let c = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
+              let con = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
 
-              let expr =
-                match e with
-                | Expression(exp) -> exp
-                | _ -> failwith "Can only match on expression"
-
-              expr |> List.iter (fun o ->
+              e.Statement |> List.iter (fun o ->
                 match o with
-                | Compound(coeff, var) ->
-                    c.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
-                | Value(v) ->
-                    let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
+                | Constant(c) ->
+                    let newVar = solver.MakeNumVar(c.toFloat, c.toFloat, c.ToString())
                     vars <- vars@[newVar]
-                    c.SetCoefficient(newVar, 1.0)
-                | _ -> ()
+                    con.SetCoefficient(newVar, 1.0)
+                | Argument(a) ->
+                    con.SetCoefficient(solver.LookupVariableOrNull(a.Name), 1.0)
+                | CoefficientArgument(c,a) ->
+                    con.SetCoefficient(solver.LookupVariableOrNull(a.Name), c.toFloat)
               )
 
           | Exclude ->
               failwithf "Constraint not valid for this type of strategy: %s" opts.Strategy.Name
 
-    let convertObjective (objFcn:Operations.Research.Types.Operand option): Objective =
+    let convertObjective (objFcn:Operations.Research.Types.Expression option): Objective =
       let objective = solver.Objective()
 
       match objFcn with
-      | Some(Expression(expr)) ->
-          expr |> List.iter (fun o ->
+      | Some(expr) ->
+          expr.Statement |> List.iter (fun o ->
             match o with
-            | Compound(coeff, var) ->
-                objective.SetCoefficient(solver.LookupVariableOrNull(var.Name), coeff.toFloat)
-            | Value(v) ->
-                let newVar = solver.MakeNumVar(v.toFloat, v.toFloat, v.ToString())
+            | Constant(c) ->
+                let newVar = solver.MakeNumVar(c.toFloat, c.toFloat, c.ToString())
                 vars <- vars @ [newVar]
                 objective.SetCoefficient(newVar, 1.0)
-            | _ -> ()
+            | Argument(a) ->
+                objective.SetCoefficient(solver.LookupVariableOrNull(a.Name), 1.0)
+            | CoefficientArgument(c,a) ->
+                objective.SetCoefficient(solver.LookupVariableOrNull(a.Name), c.toFloat)
           )
+        | None -> failwith "Objective Function cannot be empty for Linear Solver"
 
       objective
+
 
     vars <- List.map convertVar mdl.Variables
     let cons = List.iter convertCons mdl.Constraints
@@ -155,8 +154,8 @@ module Linear =
 
           let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
             let result = v.SolutionValue()
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub()); Interval=Interval.Include}; Value=VariableDataValue.Real(Number.Real(0.0)) })
-            m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub()); Interval=Interval.Include}; Value=Number.Real(0.0) })
+            m.Add( v.Name(), resultVar.Set(result) )
 
           let varMap = List.fold createVarMap Map.empty vars
 
@@ -166,8 +165,8 @@ module Linear =
 
           let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
             let result = int(v.SolutionValue())
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub())); Interval=Interval.Include}; Value=VariableDataValue.Integer(Number.Integer(0)) })
-            m.Add( v.Name(), (Operations.Research.Types.Variable.Set result  resultVar))
+            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub())); Interval=Interval.Include}; Value=Number.Integer(0) })
+            m.Add( v.Name(), resultVar.Set(result) )
 
           let varMap = List.fold createVarMap Map.empty vars
 

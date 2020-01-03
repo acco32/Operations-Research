@@ -104,7 +104,7 @@ module ``Google Solver - Linear`` =
       Model.Default
       |> DecisionVars [x; y]
       |> Goal Maximize
-      |> Objective  (6.0*x + y*11.0)
+      |> Objective  (6.0*x + 11.0*y)
       |> Matrix m lb ub
 
     let result = Solve mdl
@@ -114,10 +114,10 @@ module ``Google Solver - Linear`` =
         sol.Optimal |> should be True
 
         sol.Variables.["x"].Name |> should equal x.Name
-        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 44.0
+        sol.Variables.["x"].Data.toFloat |> should (equalWithin 0.001) 44.0
 
         sol.Variables.["y"].Name |> should equal y.Name
-        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
+        sol.Variables.["y"].Data.toFloat |> should (equalWithin 0.001) 16.0
 
         sol.Objective.toFloat |> should equal 440.0
     | Error e ->
@@ -156,19 +156,19 @@ module ``Google Solver - Linear`` =
         sol.Objective.toFloat |> should (equalWithin 0.001) 2.4
 
         sol.Variables.["x"].Name |> should equal x.Name
-        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 0.6
+        sol.Variables.["x"].Data.toFloat |> should (equalWithin 0.001) 0.6
 
         sol.Variables.["y"].Name |> should equal y.Name
-        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 1.2
+        sol.Variables.["y"].Data.toFloat |> should (equalWithin 0.001) 1.2
 
         sol.Variables.["s1"].Name |> should equal s1.Name
-        sol.Variables.["s1"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["s1"].Data.toFloat |> should (equalWithin 0.001) 0.0
 
         sol.Variables.["s2"].Name |> should equal s2.Name
-        sol.Variables.["s2"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["s2"].Data.toFloat |> should (equalWithin 0.001) 0.0
 
         sol.Variables.["s3"].Name |> should equal s3.Name
-        sol.Variables.["s3"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["s3"].Data.toFloat |> should (equalWithin 0.001) 1.0
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 
@@ -220,10 +220,10 @@ module ``Google Solver - Linear`` =
         sol.Objective.toInt |> should equal 16
 
         sol.Variables.["x"].Name |> should equal x.Name
-        sol.Variables.["x"].Data.Number.toInt |> should equal 6
+        sol.Variables.["x"].Data.toInt |> should equal 6
 
         sol.Variables.["y"].Name |> should equal y.Name
-        sol.Variables.["y"].Data.Number.toInt |> should equal 2
+        sol.Variables.["y"].Data.toInt |> should equal 2
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 
@@ -252,10 +252,10 @@ module ``Google Solver - Linear`` =
         sol.Objective.toFloat |> should (equalWithin 0.001) 173.0
 
         sol.Variables.["x"].Name |> should equal x.Name
-        sol.Variables.["x"].Data.Number.toFloat |> should (equalWithin 0.001) 16.0
+        sol.Variables.["x"].Data.toFloat |> should (equalWithin 0.001) 16.0
 
         sol.Variables.["y"].Name |> should equal y.Name
-        sol.Variables.["y"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["y"].Data.toFloat |> should (equalWithin 0.001) 0.0
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 
@@ -300,18 +300,18 @@ module ``Google Solver - Linear`` =
     match result with
     | Solution sol ->
         sol.Objective.toFloat |> should (equalWithin 0.001) 6.0
-        sol.Variables.["arc01"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
-        sol.Variables.["arc02"].Data.Number.toFloat |> should (equalWithin 0.001) 2.0
-        sol.Variables.["arc03"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc14"].Data.Number.toFloat |> should (equalWithin 0.001) 3.0
-        sol.Variables.["arc15"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
-        sol.Variables.["arc24"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc25"].Data.Number.toFloat |> should (equalWithin 0.001) 0.0
-        sol.Variables.["arc26"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc35"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc47"].Data.Number.toFloat |> should (equalWithin 0.001) 4.0
-        sol.Variables.["arc57"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc67"].Data.Number.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc01"].Data.toFloat |> should (equalWithin 0.001) 3.0
+        sol.Variables.["arc02"].Data.toFloat |> should (equalWithin 0.001) 2.0
+        sol.Variables.["arc03"].Data.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc14"].Data.toFloat |> should (equalWithin 0.001) 3.0
+        sol.Variables.["arc15"].Data.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["arc24"].Data.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc25"].Data.toFloat |> should (equalWithin 0.001) 0.0
+        sol.Variables.["arc26"].Data.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc35"].Data.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc47"].Data.toFloat |> should (equalWithin 0.001) 4.0
+        sol.Variables.["arc57"].Data.toFloat |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc67"].Data.toFloat |> should (equalWithin 0.001) 1.0
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 
