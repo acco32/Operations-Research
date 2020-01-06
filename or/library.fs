@@ -4,27 +4,27 @@ module Models =
   open System
   open Operations.Research.Types
 
-  let inline (<==) (op:Operand) (s:obj) =
-    match op, s with
-    | Expression(_) as exprs, (:? int as i)  -> Constraint(exprs, {Lower=Number.Integer(0); Upper=Number.Integer(i); Interval=Interval.Include})
-    | Expression(_) as exprs, (:? float as f)  -> Constraint(exprs, {Lower=Number.Real(0.); Upper=Number.Real(f); Interval=Interval.Include})
+  let inline (<==) (exp:Expression) (s:obj) =
+    match s with
+    | (:? int as i)  -> Constraint(exp, {Lower=Number.Integer(0); Upper=Number.Integer(i); Interval=Interval.Include})
+    | (:? float as f)  -> Constraint(exp, {Lower=Number.Real(0.); Upper=Number.Real(f); Interval=Interval.Include})
     | _ -> failwith "Cannot use value expression"
 
-  let inline (>==) (op:Operand) (s:obj) =
-    match op, s with
-    | Expression(_) as exprs, (:? int as i) -> Constraint(exprs, {Lower=Number.Integer(i); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include})
-    | Expression(_) as exprs, (:? float as f) -> Constraint(exprs, {Lower=Number.Real(f); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include})
+  let inline (>==) (exp:Expression) (s:obj) =
+    match s with
+    | (:? int as i) -> Constraint(exp, {Lower=Number.Integer(i); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include})
+    | (:? float as f) -> Constraint(exp, {Lower=Number.Real(f); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include})
     | _ -> failwith "Cannot use value expression"
 
-  let inline (===) (op:Operand) (s:obj) =
-    match op, s with
-    | Expression(_) as exprs, (:? int as i) -> Constraint(exprs, {Lower=Number.Integer(i); Upper=Number.Integer(i); Interval=Interval.Include})
-    | Expression(_) as exprs, (:? float as f) -> Constraint(exprs, {Lower=Number.Real(f); Upper=Number.Real(f); Interval=Interval.Include})
+  let inline (===) (exp:Expression) (s:obj) =
+    match s with
+    | (:? int as i) -> Constraint(exp, {Lower=Number.Integer(i); Upper=Number.Integer(i); Interval=Interval.Include})
+    | (:? float as f) -> Constraint(exp, {Lower=Number.Real(f); Upper=Number.Real(f); Interval=Interval.Include})
     | _ -> failwith "Cannot use value expression"
 
-  let inline (=/=) (op:Operand) (s:obj) =
-    match op, s with
-    | Expression(_) as exprs, (:? int as i) -> Constraint(exprs, {Lower=Number.Integer(i); Upper=Number.Integer(i); Interval=Interval.Exclude})
+  let inline (=/=) (exp:Expression) (s:obj) =
+    match s with
+    | (:? int as i) -> Constraint(exp, {Lower=Number.Integer(i); Upper=Number.Integer(i); Interval=Interval.Exclude})
     | _ -> failwith "Can only use integer expressions for this constraint"
 
   let DecisionVars (vars:Variable list) (mdl:Model) =
@@ -36,12 +36,10 @@ module Models =
     | cn -> {mdl with Constraints=cn |> List.append [con] }
 
   let Constraints (con:Constraint list) (mdl:Model) =
-    {mdl with Constraints=con }
+    {mdl with Constraints=con}
 
-  let Objective (obj:Operand) (mdl:Model) =
-    match obj with
-    | Expression(_) as o -> {mdl with Objective=Some(o)}
-    | _ -> failwith "Expression is the only acceptable Objective Function parameter"
+  let Objective (exp:Expression) (mdl:Model) =
+    {mdl with Objective=Some(exp)}
 
   let Goal (goal:Goal) (mdl:Model) =
     match goal with

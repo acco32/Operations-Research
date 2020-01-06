@@ -15,7 +15,6 @@ module Types =
       | Integer(f) -> float(f)
       | Real (f) -> f
 
-
   type Interval =
     | Include
     | Exclude
@@ -35,100 +34,180 @@ module Types =
     | _ -> failwith "Can only parse integer or float values"
   end
 
-  type VariableDataValue =
-    | Boolean of bool
-    | Integer of Number
-    | Real of Number
-    member this.Number =
-      match this with
-      | Real(n)| Integer(n) -> n
-      | Boolean(_) -> failwith "Cannot get value"
-    member this.Selected =
-      match this with
-      | Boolean(b) -> b
-      | Real(_)| Integer(_) -> failwith "Cannot get value"
 
-  type BooleanVariableData = {
-    Name: string;
-    Value: VariableDataValue;
-   }
-
-  type NumberVariableData = {
+  type VariableData = {
     Name:string
     Bounds: NumberBounds
-    Value: VariableDataValue
+    Value: Number
    }
 
   type Variable =
-    | Boolean of BooleanVariableData
-    | Number of NumberVariableData
+    | Boolean of VariableData
+    | Number of VariableData
     static member Bool (name:string) =
-      Boolean({Name=name; Value=VariableDataValue.Boolean(false)})
+      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(1); Interval=Interval.Include}
+      Boolean({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Integer (name:string) =
       let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include}
-      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
+      Number({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Integer ((name:string), (lowerBound:int), (upperBound:int)) =
       let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound); Interval=Interval.Include}
-      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Integer(Number.Integer(0))})
+      Number({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Real (name:string) =
       let bnd = {Lower=Number.Real(0.0); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include}
-      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Real(0.0))})
+      Number({Name=name; Bounds=bnd; Value=Number.Real(0.0)})
     static member Real ((name:string), (lowerBound:float), (upperBound:float)) =
       let bnd = {Lower=Number.Real(lowerBound); Upper=Number.Real(upperBound); Interval=Interval.Include}
-      Number({Name=name; Bounds=bnd; Value=VariableDataValue.Real(Number.Integer(0))})
+      Number({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     member this.Name =
       match this with
-      | Boolean({Name=n; Value=_}) ->  n
       | Number({Name=n; Bounds=_; Value=_}) -> n
+      | Boolean({Name=n; Bounds=_; Value=_}) -> n
+    member this.Data =
+      match this with
+      | Number({Name=_; Bounds=_; Value=v}) -> v
+      | Boolean({Name=_; Bounds=_; Value=v}) -> v
+    member this.State =
+      match this with
+      | Boolean({Name=_; Bounds=_; Value=v}) ->
+          match v with
+          | Integer(i) -> i.Equals(1)
+          | Real(r) -> r.Equals(1.0)
+      | Number(_) -> failwith "Only can be used for Boolean variables."
     member this.UpperBound =
       match this with
       | Number({Name=_; Bounds=bnd; Value=_}) -> bnd.Upper
-      | _ -> failwith "can only retrieve bounds for numeric variables"
+      | Boolean({Name=_; Bounds=bnd; Value=_}) -> bnd.Upper
     member this.LowerBound =
       match this with
       | Number({Name=_; Bounds=bnd; Value=_}) -> bnd.Lower
-      | _ -> failwith "can only retrieve bounds for numeric variables"
-    static member Set (s:obj) (var:Variable) =
-      match s, var with
-      | (:? bool as b), Boolean({Name=n; Value=_}) -> Boolean({Name=n; Value=VariableDataValue.Boolean(b)})
-      | (:? float as f), Number({Name=n; Bounds=b; Value=VariableDataValue.Real(_)}) ->
-          match b.withinBounds(f) with
-          | true -> Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Real(f))})
-          | false -> invalidArg "s" "Out of Range"
-      | (:? int as i), Number({Name=n; Bounds=b; Value=VariableDataValue.Integer(_)}) ->
+      | Boolean({Name=_; Bounds=bnd; Value=_}) -> bnd.Lower
+    member this.Set (s:obj) =
+      match this, s with
+      | Boolean({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? bool as bl) ->
+          match bl with
+          | true -> Number({Name=n; Bounds=b;Value=Number.Integer(1)})
+          | false -> Number({Name=n; Bounds=b;Value=Number.Integer(0)})
+      | Boolean({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? int as i) ->
+          match i with
+          | 1 -> Number({Name=n; Bounds=b;Value=Number.Integer(1)})
+          | 0 -> Number({Name=n; Bounds=b;Value=Number.Integer(0)})
+          | _ -> failwith "Only 1 or 0 are acceptable values"
+      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? int as i) ->
           match b.withinBounds(i) with
-          | true -> Number({Name=n; Bounds=b; Value=VariableDataValue.Real(Number.Integer(i))})
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Integer(i)})
           | false -> invalidArg "s" "Out of Range"
-      | (:? int), Number({Name=_; Bounds=_; Value=VariableDataValue.Real(_)}) -> invalidArg "s" "Cannot set Integer variable with Real value"
-      | (:? float), Number({Name=_; Bounds=_; Value=VariableDataValue.Integer(_)}) -> invalidArg "s" "Cannot set Real variable with Integer value"
-      | (:? float), Boolean(_) -> invalidArg "s" "Cannot set Boolean variable with Number value"
-      | (:? bool), Number(_) -> invalidArg "s" "Cannot set Number variable with Boolean value"
-      | _ -> failwith "cannot set variable with unknown type"
-    member this.Data =
-      match this with
-      | Boolean({Name=_; Value=v}) | Number({Name=_; Bounds=_; Value=v}) -> v
-    static member (*) (c:float, v:Variable) = Expression([Compound(Number.Real(c), v)])
-    static member (*) (v:Variable, c:float) = Expression([Compound(Number.Real(c), v)])
-    static member (*) (c:int, v:Variable) = Expression([Compound(Number.Integer(c), v)])
-    static member (*) (v:Variable, c:int) = Expression([Compound(Number.Integer(c), v)])
-
+      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? float as f) ->
+          match b.withinBounds(f) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Real(f)})
+          | false -> invalidArg "s" "Out of Range"
+      | Number({Name=n; Bounds=b; Value=Number.Real(_)}), (:? int as i) ->
+          match b.withinBounds(i) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Real(float(i))})
+          | false -> invalidArg "s" "Out of Range"
+      | Number({Name=n; Bounds=b; Value=Number.Integer(_)}), (:? float as f) ->
+          match b.withinBounds(f) with
+          | true ->  Number({Name=n; Bounds=b;Value=Number.Integer(int(f))})
+          | false -> invalidArg "s" "Out of Range"
+      | _ -> failwith "Unable to set variable"
+    static member (*) (c:float, v:Variable) =
+      let exp = Expression.New()
+      {
+        exp with
+          Statement = exp.Statement@[CoefficientArgument(Number.Real(c), v)];
+          Variables = exp.Variables.Add(v.Name, v)
+      }
+    static member (*) (c:int, v:Variable) =
+      let exp = Expression.New()
+      {
+        exp with
+          Statement = exp.Statement@[CoefficientArgument(Number.Integer(c), v)];
+          Variables = exp.Variables.Add(v.Name, v)
+      }
+    static member (+) ((arg1:Variable), (arg2:Variable)) : Expression =
+      let exp = Expression.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Argument(arg2)];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.Name, arg2)
+      }
+    static member (+) ((arg1:Variable), (arg2:int)) : Expression =
+      let exp = Expression.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Constant(Number.Integer(arg2))];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.ToString(), Variable.Integer(arg2.ToString(), arg2, arg2))
+      }
+    static member (+) ((arg1:Variable), (arg2:float)) : Expression =
+      let exp = Expression.New()
+      {
+        exp with
+          Statement = exp.Statement@[Argument(arg1); Constant(Number.Real(arg2))];
+          Variables = exp.Variables.Add(arg1.Name, arg1).Add(arg2.ToString(), Variable.Real(arg2.ToString(), arg2, arg2))
+      }
+    static member (+) ((arg1:Variable), (arg2:Expression)) : Expression =
+      {
+        arg2 with
+          Statement = [Argument(arg1)]@arg2.Statement;
+          Variables = arg2.Variables.Add(arg1.Name, arg1)
+      }
+    static member (+) ((arg1:Expression), (arg2:Variable)) : Expression =
+      {
+        arg1 with
+          Statement = arg1.Statement@[Argument(arg2)]
+          Variables = arg1.Variables.Add(arg2.Name, arg2)
+      }
   and Operand =
-    | Compound of Number * Variable
-    | Value of Number
-    | Expression of Operand list
-    static member (+) (o1:Operand, o2:Operand) =
-      match o1,o2 with
-      | Expression(a), Expression(b) -> Expression( a @ b )
-      | Expression(l), Value(v) -> Expression( l @ [Value(v)]  )
-      | Value(v), Expression(l) -> Expression( [Value(v)] @ l)
-      | _,_ -> failwith "cannot match operand"
-    static member (+) (o:Operand, v:float) = o + Value(Number.Real(v))
-    static member (+) (v:float, o:Operand) = Value(Number.Real(v)) + o
-    static member (+) (o:Operand, v:int) = o + Value(Number.Integer(v))
-    static member (+) (v:int, o:Operand) = Value(Number.Integer(v)) + o
+    | Constant of Number
+    | Argument of Variable
+    | CoefficientArgument of Number * Variable
+  and Expression = {
+    Statement: Operand list
+    Variables: Map<string, Variable>
+  }
+  with
+  static member New() = {Statement=List.empty; Variables=Map.empty}
+  static member Eval (vars:Set<Variable>) (exp:Expression): Number =
+    if vars.IsEmpty then invalidArg "vars" "Set cannot be empty"
 
+    let tmp = List.map (fun (v:Variable) ->  exp.Variables.ContainsKey(v.Name) ) (vars |> Set.toList)
+    let allVariablesPresent = tmp |> List.reduce (&&)
+    if not allVariablesPresent then invalidArg "vars" "one (or many) input variable names do not match expression variable names"
 
-  type Constraint = Constraint of Operand * bounds:NumberBounds
+    let ans = (exp.Statement) |> List.map ( fun (v:Operand) ->
+      match v with
+      | Constant(c) -> c.toInt
+      | Argument(a) ->
+          let ap = List.find (fun (f:Variable) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
+          ap.Data.toInt
+      | CoefficientArgument(c,a) ->
+          let ap = List.find (fun (f:Variable) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
+          c.toInt * ap.Data.toInt
+    )
+
+    Number.Integer(ans |> List.reduce (+))
+  static member (+) ((arg1:Expression), (arg2:Expression)) : Expression =
+    {
+      arg1 with
+        Statement = arg1.Statement@arg2.Statement
+        Variables = Map.fold (fun acc key value -> Map.add key value acc) arg1.Variables arg2.Variables
+    }
+  static member (+) ((arg1:Expression), (arg2:int)) : Expression =
+    {
+      arg1 with
+        Statement = arg1.Statement@[Constant(Number.Integer(arg2))]
+        Variables = arg1.Variables.Add(arg2.ToString(), Variable.Integer(arg2.ToString(), arg2, arg2))
+    }
+  static member (+) ((arg1:Expression), (arg2:float)) : Expression =
+    {
+      arg1 with
+        Statement = arg1.Statement@[Constant(Number.Real(arg2))]
+        Variables = arg1.Variables.Add(arg2.ToString(), Variable.Real(arg2.ToString(), arg2, arg2))
+    }
+  end
+
+  // type Constraint = Constraint of Operand * bounds:NumberBounds
+  type Constraint = Constraint of Expression * bounds:NumberBounds
 
   type Goal =
     /// Goal is unset
@@ -140,7 +219,7 @@ module Types =
 
   type Model = {
     Variables: Variable list
-    Objective: Operand option
+    Objective: Expression option
     Constraints: Constraint list
     Goal: Goal
   }
@@ -163,10 +242,4 @@ module Types =
   type SolverResult =
     | Solution of SolverSolution
     | Error of SolverError
-
-
-
-
-
-
 

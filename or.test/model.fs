@@ -40,6 +40,36 @@ module ``Models`` =
     let obj = 1.0*x + 0.4*y
 
     let newMdl = mdl |> Objective obj
-    newMdl.Objective.Value |> should be instanceOfType<Operand>
+    newMdl.Objective.Value |> should be instanceOfType<Expression>
 
+  [<Fact>]
+  let ``create default solver options should have default values of none`` () =
+    let mdl = Model.Default
+    mdl.Variables |> should haveLength 0
+    mdl.Objective |> should equal None
+    mdl.Constraints |> should haveLength 0
 
+  [<Fact>]
+  let ``create constraint with less than or equal operator``()=
+    let x = Variable.Real("x", 0., 1.)
+    let c = 1.0*x <== 2.0
+    c |> should be instanceOfType<Constraint>
+
+  [<Fact>]
+  let ``create constraint with greater than or equal operator``()=
+    let x = Variable.Real("x", 0., 1.)
+    let c = 1.0*x >== 2.0
+    c |> should be instanceOfType<Constraint>
+
+  [<Fact>]
+  let ``create constraint with equal operator``()=
+    let x = Variable.Real("x", 0., 1.)
+    let c = 1.0*x === 2.0
+    c |> should be instanceOfType<Constraint>
+
+  [<Fact>]
+  let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
+    let x = Variable.Real("x", 0., 1.)
+    Assert.Throws<Exception>( fun () ->
+        1*x =/= 2.0 |> ignore
+    )
