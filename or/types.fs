@@ -48,13 +48,13 @@ module Types =
       let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(1); Interval=Interval.Include}
       Boolean({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Integer (name:string) =
-      let bnd = {Lower=Number.Integer(0); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include}
+      let bnd = {Lower=Number.Integer(Int32.MinValue); Upper=Number.Integer(Int32.MaxValue); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Integer ((name:string), (lowerBound:int), (upperBound:int)) =
       let bnd = {Lower=Number.Integer(lowerBound); Upper=Number.Integer(upperBound); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=Number.Integer(0)})
     static member Real (name:string) =
-      let bnd = {Lower=Number.Real(0.0); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include}
+      let bnd = {Lower=Number.Real(Double.NegativeInfinity); Upper=Number.Real(Double.PositiveInfinity); Interval=Interval.Include}
       Number({Name=name; Bounds=bnd; Value=Number.Real(0.0)})
     static member Real ((name:string), (lowerBound:float), (upperBound:float)) =
       let bnd = {Lower=Number.Real(lowerBound); Upper=Number.Real(upperBound); Interval=Interval.Include}
@@ -206,7 +206,6 @@ module Types =
     }
   end
 
-  // type Constraint = Constraint of Operand * bounds:NumberBounds
   type Constraint = Constraint of Expression * bounds:NumberBounds
 
   type Goal =
