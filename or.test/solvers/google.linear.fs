@@ -208,7 +208,7 @@ module ``Google Solver - Linear`` =
       |> Goal Maximize
       |> Objective  (1*x + 5*y)
       |> Constraints [
-        1*x + 1*y <== 8
+        x + y <== 8
         (-1*x) + 3*y <== 0
       ]
 

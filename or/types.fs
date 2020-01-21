@@ -110,14 +110,14 @@ module Types =
           | true ->  Number({Name=n; Bounds=b;Value=Number.Integer(int(f))})
           | false -> invalidArg "s" "Out of Range"
       | _ -> failwith "Unable to set variable"
-    static member (*) (c:float, v:Variable) =
+    static member (*) (c:float, v:Variable): Expression =
       let exp = Expression.New()
       {
         exp with
           Statement = exp.Statement@[CoefficientArgument(Number.Real(c), v)];
           Variables = exp.Variables.Add(v.Name, v)
       }
-    static member (*) (c:int, v:Variable) =
+    static member (*) (c:int, v:Variable) : Expression =
       let exp = Expression.New()
       {
         exp with
@@ -176,16 +176,16 @@ module Types =
 
     let ans = (exp.Statement) |> List.map ( fun (v:Operand) ->
       match v with
-      | Constant(c) -> c.toInt
+      | Constant(c) -> c.toFloat
       | Argument(a) ->
           let ap = List.find (fun (f:Variable) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
-          ap.Data.toInt
+          ap.Data.toFloat
       | CoefficientArgument(c,a) ->
           let ap = List.find (fun (f:Variable) -> f.Name.Equals(a.Name)) (vars |> Set.toList)
-          c.toInt * ap.Data.toInt
+          c.toFloat * ap.Data.toFloat
     )
 
-    Number.Integer(ans |> List.reduce (+))
+    Number.Real(ans |> List.reduce (+))
   static member (+) ((arg1:Expression), (arg2:Expression)) : Expression =
     {
       arg1 with
