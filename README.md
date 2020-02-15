@@ -1,8 +1,8 @@
 # Operations Research with F#
 
-Library to solve operations research problems in F\#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. The primary solver used is [Google's OrTools](https://developers.google.com/optimization/).
+Library to solve operations research problems in F\#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. Currently the only solver used is [Google's OrTools](https://developers.google.com/optimization/).
 
-## Solvers
+## Solver Types
 
 - Linear Programming
 
@@ -47,5 +47,12 @@ match result with
 
 Run the script to `install-task-runner.sh` to install [tusk](https://github.com/rliebz/tusk). This will install the tool nessary for building the application. Then run the tool to view the task options.
 
+```shell
+./tools/tusk
+```
 
 ## Links
+
+[Google's OrTools](https://developers.google.com/optimization/)
+[Operations Research (Wikipedia)](https://en.wikipedia.org/wiki/Operations_research)
+[F# Foundation](http://foundation.fsharp.org/)
