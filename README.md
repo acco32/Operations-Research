@@ -53,6 +53,6 @@ Run the script to `install-task-runner.sh` to install [tusk](https://github.com/
 
 ## Links
 
-[Google's OrTools](https://developers.google.com/optimization/)
-[Operations Research (Wikipedia)](https://en.wikipedia.org/wiki/Operations_research)
-[F# Foundation](http://foundation.fsharp.org/)
+[Google's OrTools](https://developers.google.com/optimization/)  
+[Operations Research (Wikipedia)](https://en.wikipedia.org/wiki/Operations_research)  
+[F# Foundation](http://foundation.fsharp.org/)  
