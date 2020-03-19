@@ -30,4 +30,4 @@ tasks:
         usage: the nuget server API key
         default: ''
     run:
-      - dotnet nuget push packages/*.nupkg --api-key ${apiKey}
+      - dotnet nuget push --source 'https://nuget.org' --api-key ${apiKey} packages/*.nupkg
