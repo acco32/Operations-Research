@@ -1,7 +1,7 @@
 # Operations Research with F#
 
 ![Operations Research](https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master)
-![LICENCE](https://img.shields.io/badge/licence-MIT-blue.svg)]
+![LICENCE](https://img.shields.io/badge/licence-MIT-blue.svg)
 
 Library to solve operations research problems in F\#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. Currently the only solver used is [Google's OrTools](https://developers.google.com/optimization/).
 
