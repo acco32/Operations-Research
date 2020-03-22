@@ -22,5 +22,7 @@ jobs:
       run: ./tools/tusk test
     - name: Build Package
       run: ./tools/tusk release
+      env:
+        RELEASE_VERSION: ${{ secrets.RELEASE_VERSION }}
     - name: Publish to 'nuget.org'
       run: ./tools/tusk publish --apiKey=${{ secrets.NUGET_API }}
