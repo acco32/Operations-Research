@@ -1,12 +1,12 @@
-name: Operations Research
+name: Operations Research New Feature
 
 on:
   push:
-    branches:
+    branches-ignore:
       - master
 
 jobs:
-  build-test-publish:
+  build-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
@@ -20,7 +20,3 @@ jobs:
       run: ./tools/tusk clean
     - name: Run Tests
       run: ./tools/tusk test
-    - name: Build Package
-      run: ./tools/tusk release
-    - name: Publish to 'nuget.org'
-      run: ./tools/tusk publish --apiKey=${{ secrets.NUGET_API }}
