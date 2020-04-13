@@ -6,8 +6,8 @@ module Models =
 
   let inline (<==) (exp:Expression) (s:obj) =
     match s with
-    | (:? int as i)  -> Constraint(exp, {Lower=Number.Integer(0); Upper=Number.Integer(i); Interval=Interval.Include})
-    | (:? float as f)  -> Constraint(exp, {Lower=Number.Real(0.); Upper=Number.Real(f); Interval=Interval.Include})
+    | (:? int as i)  -> Constraint(exp, {Lower=Number.Integer(Int32.MinValue); Upper=Number.Integer(i); Interval=Interval.Include})
+    | (:? float as f)  -> Constraint(exp, {Lower=Number.Real(Double.NegativeInfinity); Upper=Number.Real(f); Interval=Interval.Include})
     | _ -> failwith "Cannot use value expression"
 
   let inline (>==) (exp:Expression) (s:obj) =
