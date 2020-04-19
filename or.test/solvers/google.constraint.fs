@@ -33,3 +33,34 @@ module ``Google Solver - Constraint`` =
         sol.Variables.[p.Name].Data.toInt |> should equal 12
     | Error e ->
         Assert.True(false, sprintf "%A" e)
+
+  [<Fact>]
+  let ``Solve with 10 second time limit``() =
+    let x = Variable.Integer("x", 0, 2)
+    let y = Variable.Integer("y", 0, 2)
+    let z = Variable.Integer("z", 0, 2)
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [x; y; z]
+      |> Constraints [
+        x + -1*y =/= 0
+      ]
+
+    let solverOpts = { SolverOptions.Default with TimeLimit = 10 }
+    let result = SolveWithCustomOptions mdl solverOpts
+
+    match result with
+    | Solution sol ->
+        sol.Variables.[x.Name].Name |> should equal x.Name
+        sol.Variables.[x.Name].Data.toInt |> should equal 1
+
+        sol.Variables.[y.Name].Name |> should equal y.Name
+        sol.Variables.[y.Name].Data.toInt |> should equal 2
+
+        sol.Variables.[z.Name].Name |> should equal z.Name
+        sol.Variables.[z.Name].Data.toInt |> should equal 0
+    | Error e ->
+        Assert.True(false, sprintf "%A" e)
+
+

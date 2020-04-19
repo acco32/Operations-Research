@@ -10,11 +10,15 @@ module Constraint =
   type SolverOptions = {
     /// Time limit for solver to run. Unit is seconds.
     TimeLimit: int;
+    // Number of parallel workers to use. Default is 2.
+    SearchWorkers: int;
+    // Whether to log search output. Default is FALSE.
+    LogSearchProgress: bool;
   }
   with
   /// Default options to pass to solver
   static member Default =
-    { TimeLimit=30 }
+    { TimeLimit=30; SearchWorkers=2; LogSearchProgress=false}
   end
 
   let SolveWithCustomOptions (mdl:Model) (opts:SolverOptions) : SolverResult =
@@ -65,6 +69,14 @@ module Constraint =
     )
 
     let solver = CpSolver()
+    
+    solver.StringParameters <-
+      List.empty
+        |> List.append [(sprintf "max_time_in_seconds:%i" opts.TimeLimit)]
+        |> List.append [(sprintf "log_search_progress:%s" (opts.LogSearchProgress.ToString().ToLower()))]
+        |> List.append [(sprintf "num_search_workers:%i" opts.SearchWorkers)]
+        |> String.concat ","
+
     let result = solver.Solve(model)
 
     match result with
