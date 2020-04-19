@@ -20,7 +20,11 @@ module Constraint =
   let SolveWithCustomOptions (mdl:Model) (opts:SolverOptions) : SolverResult =
 
     let model = CpModel()
-    let mutable vars = List.Empty
+
+    let vars:Map<String, IntVar> =
+      mdl.Variables
+      |> List.map (fun v -> v.Name, model.NewIntVar(int64(v.LowerBound.toInt), int64(v.UpperBound.toInt), v.Name))
+      |> Map.ofList
 
     mdl.Constraints
     |> List.iter (fun (cnsrnt:Operations.Research.Types.Constraint) ->
@@ -30,22 +34,19 @@ module Constraint =
       let oprndsMap = (expr.Statement) |> List.map ( fun (v:Operand) ->
         match v with
         | Constant(c) ->
-            let newVar = model.NewConstant(int64(c.toInt))
-            vars <- vars@[newVar]
-            int64(1) * newVar
+            1L*model.NewConstant(int64(c.toInt))
         | Argument(a) ->
-            let newVar = model.NewIntVar(int64(a.LowerBound.toInt), int64(a.UpperBound.toInt), a.Name)
-            vars <- vars@[newVar]
-            int64(1) * newVar
+            1L*vars.[a.Name]
         | CoefficientArgument(c,a) ->
-            let newVar = model.NewIntVar(int64(a.LowerBound.toInt), int64(a.UpperBound.toInt), a.Name)
-            vars <- vars@[newVar]
-            int64(c.toInt) * newVar
+            int64(c.toInt) * vars.[a.Name]
+
       )
 
+      // LHS
       let oprnds = List.reduce (+) oprndsMap
 
-      let cc =
+      // LHS & RHS
+      let cons =
         match bnds.Lower, bnds.Upper, bnds.Interval with
         | Number.Integer(Int32.MinValue), ub, Include ->
             new BoundedLinearExpression(Int64.MinValue, oprnds, int64(ub.toInt))
@@ -57,10 +58,10 @@ module Constraint =
             new BoundedLinearExpression(int64(lb.toInt), oprnds, Int64.MaxValue)
         | _, ub, Exclude ->
             new BoundedLinearExpression(oprnds, int64(ub.toInt), false);
-        | _, ub, _ ->
-            new BoundedLinearExpression(oprnds, int64(ub.toInt), false);
+        | _, ub, Include ->
+            new BoundedLinearExpression(oprnds, int64(ub.toInt), true);
 
-      model.Add(cc) |> ignore
+      model.Add(cons) |> ignore
     )
 
     let solver = CpSolver()
@@ -69,16 +70,12 @@ module Constraint =
     match result with
     | CpSolverStatus.Optimal | CpSolverStatus.Feasible ->
 
-        let varMap =
-          vars |> List.map ( fun v ->
-              (
-                v.Name(),
-                Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Domain.Min())); Upper=Number.Integer(int(v.Domain.Max())); Interval=Interval.Include}; Value=Number.Integer(int(solver.Value(v))) })
-              )
+        let varMap2 =
+          vars |> Map.map (fun k v ->
+            Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Domain.Min())); Upper=Number.Integer(int(v.Domain.Max())); Interval=Interval.Include}; Value=Number.Integer(int(solver.Value(v))) })
           )
-          |> Map.ofSeq
 
-        Solution({ Variables = varMap ; Objective = Number.Real(solver.Response.ObjectiveValue); Optimal = false})
+        Solution({ Variables = varMap2 ; Objective = Number.Real(solver.Response.ObjectiveValue); Optimal = false})
 
     | CpSolverStatus.Infeasible as err ->
       Error({Code=int(err); Message="Infeasible"})

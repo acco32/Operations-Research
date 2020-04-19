@@ -9,9 +9,8 @@ module ``Google Solver - Constraint`` =
   open Operations.Research.Models
   open Operations.Research.Solvers.Google.Constraint
 
-
-  // [<Fact>]
-  let ``basic constraint program``() =
+  [<Fact>]
+  let ``Rabbits/Pheasants``() =
     let r = Variable.Integer("r", 0, 100)
     let p = Variable.Integer("p", 0, 100)
 
@@ -27,7 +26,10 @@ module ``Google Solver - Constraint`` =
 
     match result with
     | Solution sol ->
-        Assert.True(true)
+        sol.Variables.[r.Name].Name |> should equal r.Name
+        sol.Variables.[r.Name].Data.toInt |> should equal 8
+
+        sol.Variables.[p.Name].Name |> should equal p.Name
+        sol.Variables.[p.Name].Data.toInt |> should equal 12
     | Error e ->
         Assert.True(false, sprintf "%A" e)
-
