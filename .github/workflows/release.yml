@@ -1,11 +1,8 @@
 name: Operations Research
 
 on:
-  push:
-    branches:
-      - master
-    tags:
-      - v*
+  release:
+    types: [created]
 
 jobs:
   build-test-publish:
