@@ -1,6 +1,6 @@
 namespace Operations.Research.Test
 
-module ``Basic Types 2`` =
+module ``Basic Types`` =
 
   open System
   open Xunit
@@ -154,4 +154,3 @@ module ``Basic Types 2`` =
     coDomain |> should be instanceOfType<Number>
     coDomain.toInt |> should equal 25
 
-  

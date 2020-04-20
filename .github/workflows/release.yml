@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - v*
 
 jobs:
   build-test-publish:
@@ -21,8 +23,6 @@ jobs:
     - name: Run Tests
       run: ./tools/tusk test
     - name: Build Package
-      run: ./tools/tusk release
-      env:
-        RELEASE_VERSION: ${{ secrets.RELEASE_VERSION }}
+      run: RELEASE_VERSION=$(git describe --abbrev=0 --tags) ./tools/tusk release --version=$(echo $RELEASE_VERSION | cut -c 2-)
     - name: Publish to 'nuget.org'
       run: ./tools/tusk publish --apiKey=${{ secrets.NUGET_API }}

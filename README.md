@@ -8,6 +8,7 @@ Library to solve operations research problems in F\#. You can specify your objec
 ## Solver Types
 
 - Linear Programming
+- Constraint Programming
 
 ## Example
 
