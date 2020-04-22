@@ -1,8 +1,11 @@
 name: Operations Research Release
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - master
+    tags:
+      - v*
 
 jobs:
   build-test-publish:
@@ -20,6 +23,6 @@ jobs:
     - name: Run Tests
       run: ./tools/tusk test
     - name: Build Package
-      run: RELEASE_VERSION=$(git describe --abbrev=0 --tags) ./tools/tusk release --version=$(echo $RELEASE_VERSION | cut -c 2-)
+      run: RELEASE_VERSION=$(git describe --abbrev=0 --tags) && ./tools/tusk release --version=$(echo $RELEASE_VERSION | cut -c 2-)
     - name: Publish to 'nuget.org'
       run: ./tools/tusk publish --apiKey=${{ secrets.NUGET_API }}
