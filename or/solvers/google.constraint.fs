@@ -69,7 +69,7 @@ module Constraint =
     )
 
     let solver = CpSolver()
-    
+
     solver.StringParameters <-
       List.empty
         |> List.append [(sprintf "max_time_in_seconds:%i" opts.TimeLimit)]
