@@ -61,7 +61,7 @@ module Linear =
 
   let SolveWithCustomOptions (mdl:Model) (opts:SolverOptions) : SolverResult =
 
-    let solver = Solver.CreateSolver("", opts.Strategy.Name)
+    let solver = Solver.CreateSolver(opts.Strategy.Name)
 
     let (|IntegerStrategy|LinearStrategy|) strtgy =
       if strtgy = IntegerSolverStrategy.BOP then IntegerStrategy

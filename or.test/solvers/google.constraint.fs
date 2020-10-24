@@ -56,7 +56,7 @@ module ``Google Solver - Constraint`` =
         sol.Variables.[x.Name].Data.toInt |> should equal 1
 
         sol.Variables.[y.Name].Name |> should equal y.Name
-        sol.Variables.[y.Name].Data.toInt |> should equal 2
+        sol.Variables.[y.Name].Data.toInt |> should equal 0
 
         sol.Variables.[z.Name].Name |> should equal z.Name
         sol.Variables.[z.Name].Data.toInt |> should equal 0
