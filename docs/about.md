@@ -4,6 +4,6 @@ title: "About"
 permalink: /about/
 ---
 
-= About
+# About
 
 Software programmer who enjoys Optimization problems.
