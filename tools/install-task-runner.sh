@@ -2,4 +2,4 @@
 
 set -e
 
-curl -sL https://git.io/tusk | bash -s -- -b tools v0.5.1
+curl -sL https://git.io/tusk | bash -s -- -b tools v0.6.1
