@@ -1,0 +1,9 @@
+== Resources
+
+[%hardbreaks]
+https://developers.google.com/optimization/[Google's OrTools]
+https://en.wikipedia.org/wiki/Operations_research[Operations Research (Wikipedia)]
+http://foundation.fsharp.org/[F# Foundation]
+https://en.wikipedia.org/wiki/Linear_programming[Linear Programming]
+https://en.wikipedia.org/wiki/Constraint_programming[Constraint Programming]
+

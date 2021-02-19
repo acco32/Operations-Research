@@ -1,0 +1,13 @@
+= F#OR
+Operations Research with F#.
+:toc: right
+:toclevels: 2
+
+image::https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master[Operations Research]
+
+General resource for using the F# Operations Research module.
+
+include::getting_started.adoc[]
+include::linear.adoc[]
+include::constraint.adoc[]
+include::links.adoc[]

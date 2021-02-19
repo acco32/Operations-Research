@@ -1,9 +1,0 @@
----
-layout: page
-title: "About"
-permalink: /about/
----
-
-# About
-
-Software programmer who enjoys Optimization problems.

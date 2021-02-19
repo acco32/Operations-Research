@@ -1,7 +1,0 @@
-theme: jekyll-theme-tactile
-
-plugins:
-- jekyll-asciidoc
-
-asciidoctor: {}
-
