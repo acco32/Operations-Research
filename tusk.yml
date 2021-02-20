@@ -3,6 +3,10 @@ tasks:
     usage: Build the application
     run:
       - dotnet build /nowarn:FS0025
+  docs:
+    usage: Build the docs
+    run:
+      - asciidoctor docs/*.adoc
   test:
     usage: Run unit tests for entire repository
     run:

@@ -1,0 +1,31 @@
+:toc: right
+:toclevels: 2
+:toc-title: Getting Started
+:nofooter:
+
+== Download tools
+
+In order to use the module you will require the https://dotnet.microsoft.com[dotnet SDK]. The latest version of the module requires version 5. Once installed test your installation using `dotnet --info`. The output will show which SDKs are installed (as it is possible to install more than one for compatibility).
+
+
+== New project
+
+We'll begin by creating a program and including the F#OR module.
+
+[%hardbreaks]
+. Create a standard dotnet console project
++
+[source, bash]
+-----
+dotnet new console -lang F# -n or
+-----
++
+. Add the Operations Research module from https://www.nuget.org/packages/OperationsResearch[Nuget]
++
+[source, bash]
+-----
+dotnet add package OperationsResearch --version X.X.X
+-----
+
+Now you are ready to start solving some problems.
+

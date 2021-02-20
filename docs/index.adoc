@@ -1,0 +1,13 @@
+= F#OR
+:nofooter:
+Operations Research with F#.
+
+image::https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master[Operations Research]
+
+Over the past few years, I have been increasingly fascinated with Operations Research and its applications: Economic models; Scheduling; Engineering & Design; etcetera. Operations Research has provided a wealth of good to society as a whole. This library is a general resource for using the F# Operations Research module. Hope you have fun with it.
+
+[%hardbreaks]
+<<getting_started.adoc#,Getting Started>>
+<<linear.adoc#,Linear Programming>>
+<<constraint.adoc#, Constraint Programming>>
+<<resources.adoc#, Tools & Resources>>
