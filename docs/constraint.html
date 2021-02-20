@@ -5,8 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<meta name="author" content="Operations Research with F#.">
-<title>F#OR</title>
+<title>Rabbits &amp; Pheasants</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -437,27 +436,51 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="article toc2 toc-right">
 <div id="header">
-<h1>F#OR</h1>
-<div class="details">
-<span id="author" class="author">Operations Research with F#.</span><br>
+<div id="toc" class="toc2">
+<div id="toctitle">Constraint Programming</div>
+<ul class="sectlevel1">
+<li><a href="#_rabbits_pheasants">Rabbits &amp; Pheasants</a></li>
+</ul>
 </div>
 </div>
 <div id="content">
-<div class="imageblock">
+<div class="sect1">
+<h2 id="_rabbits_pheasants">Rabbits &amp; Pheasants</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following example utilizes the standard constraint solver. The problem to be solved is to determine the number of pheasants &amp; rabbits that match the following constraints: the total number of animals is twenty and we have the total number of legs equals fifty six.</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master" alt="Operations Research">
+<pre class="highlight"><code class="language-FSharp" data-lang="FSharp">open System
+open Operations.Research.Types
+open Operations.Research.Models
+open Operations.Research.Solvers.Google.Constraint
+
+let r = Variable.Integer("rabbits", 0, 100)
+let p = Variable.Integer("pheasants", 0, 100)
+
+let mdl =
+  Model.Default
+  |&gt; DecisionVars [r; p]
+  |&gt; Constraints [
+    r + p === 20
+    4*r + 2*p === 56
+  ]
+
+let result = Solve mdl
+
+match result with
+| Solution sol -&gt;
+    printfn "%s: %i" (sol.Variables.["rabbits"].Name) (sol.Variables.["rabbits"].Data.toInt)
+    printfn "%s: %i" (sol.Variables.["pheasants"].Name) (sol.Variables.["pheasants"].Data.toInt)
+| Error e -&gt;
+    printfn "%A" e</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Over the past few years, I have been increasingly fascinated with Operations Research and its applications: Economic models; Scheduling; Engineering &amp; Design; etcetera. Operations Research has provided a wealth of good to society as a whole. This library is a general resource for using the F# Operations Research module. Hope you have fun with it.</p>
 </div>
-<div class="paragraph">
-<p><a href="getting_started.html">Getting Started</a><br>
-<a href="linear.html">Linear Programming</a><br>
-<a href="constraint.html">Constraint Programming</a><br>
-<a href="resources.html">Tools &amp; Resources</a></p>
 </div>
 </div>
 </body>

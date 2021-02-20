@@ -1,6 +1,16 @@
-== Getting Started
+:toc: right
+:toclevels: 2
+:toc-title: Getting Started
+:nofooter:
 
-We'll begin by creating a program and including the module.
+== Download tools
+
+In order to use the module you will require the https://dotnet.microsoft.com[dotnet SDK]. The latest version of the module requires version 5. Once installed test your installation using `dotnet --info`. The output will show which SDKs are installed (as it is possible to install more than one for compatibility).
+
+
+== New project
+
+We'll begin by creating a program and including the F#OR module.
 
 [%hardbreaks]
 . Create a standard dotnet console project
@@ -18,5 +28,4 @@ dotnet add package OperationsResearch --version X.X.X
 -----
 
 Now you are ready to start solving some problems.
-
 

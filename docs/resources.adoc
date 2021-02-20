@@ -1,0 +1,21 @@
+:toc: right
+:toclevels: 2
+:toc-title: Resources
+:nofooter:
+
+== Google OrTools
+
+https://developers.google.com/optimization/[Google's OrTools] is an operations research library that is primarily focussed on solving combinatorial programs. Combinatorial problems are widespread in practice: N-Queens; Knapsack problems; Travelling Saleman, etcetera. There are other tools available for other types of programs (e.g.: SOCP, SICP). It is free and open source.
+
+
+== F#
+
+A functional first language which is very expresssive and easy to read/reason. It is built on top of the https://dotnet.microsoft.com/[dotnet framework]. Also, have a look at the http://foundation.fsharp.org/[F# Foundation].
+
+
+== Supplementary Reading
+
+[%hardbreaks]
+https://en.wikipedia.org/wiki/Operations_research[Operations Research (Wikipedia)]
+https://en.wikipedia.org/wiki/Linear_programming[Linear Programming]
+https://en.wikipedia.org/wiki/Constraint_programming[Constraint Programming]

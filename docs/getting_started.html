@@ -5,8 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<meta name="author" content="Operations Research with F#.">
-<title>F#OR</title>
+<title>Download tools</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -437,27 +436,55 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
 </head>
-<body class="article">
+<body class="article toc2 toc-right">
 <div id="header">
-<h1>F#OR</h1>
-<div class="details">
-<span id="author" class="author">Operations Research with F#.</span><br>
+<div id="toc" class="toc2">
+<div id="toctitle">Getting Started</div>
+<ul class="sectlevel1">
+<li><a href="#_download_tools">Download tools</a></li>
+<li><a href="#_new_project">New project</a></li>
+</ul>
 </div>
 </div>
 <div id="content">
-<div class="imageblock">
+<div class="sect1">
+<h2 id="_download_tools">Download tools</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to use the module you will require the <a href="https://dotnet.microsoft.com">dotnet SDK</a>. The latest version of the module requires version 5. Once installed test your installation using <code>dotnet --info</code>. The output will show which SDKs are installed (as it is possible to install more than one for compatibility).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_new_project">New project</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>We&#8217;ll begin by creating a program and including the F#OR module.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Create a standard dotnet console project</p>
+<div class="listingblock">
 <div class="content">
-<img src="https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master" alt="Operations Research">
+<pre class="highlight"><code class="language-bash" data-lang="bash">dotnet new console -lang F# -n or</code></pre>
 </div>
+</div>
+</li>
+<li>
+<p>Add the Operations Research module from <a href="https://www.nuget.org/packages/OperationsResearch">Nuget</a></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-bash" data-lang="bash">dotnet add package OperationsResearch --version X.X.X</code></pre>
+</div>
+</div>
+</li>
+</ol>
 </div>
 <div class="paragraph">
-<p>Over the past few years, I have been increasingly fascinated with Operations Research and its applications: Economic models; Scheduling; Engineering &amp; Design; etcetera. Operations Research has provided a wealth of good to society as a whole. This library is a general resource for using the F# Operations Research module. Hope you have fun with it.</p>
+<p>Now you are ready to start solving some problems.</p>
 </div>
-<div class="paragraph">
-<p><a href="getting_started.html">Getting Started</a><br>
-<a href="linear.html">Linear Programming</a><br>
-<a href="constraint.html">Constraint Programming</a><br>
-<a href="resources.html">Tools &amp; Resources</a></p>
+</div>
 </div>
 </div>
 </body>

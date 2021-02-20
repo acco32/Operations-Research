@@ -1,4 +1,9 @@
-== Linear Programming
+:toc: right
+:toclevels: 2
+:toc-title: Linear Programming
+:nofooter:
+
+== Typical example
 
 [source, fsharp]
 -----
@@ -31,5 +36,4 @@ match result with
     printfn "%s: %i" (sol.Variables.["y"].Name) (sol.Variables.["y"].Data.toInt)
 | Error e ->
     printfn "%A" e
-
 -----

@@ -1,31 +1,36 @@
-== Constraint Programming
+:toc: right
+:toclevels: 2
+:toc-title: Constraint Programming
+:nofooter:
+
+== Rabbits & Pheasants
 
 The following example utilizes the standard constraint solver. The problem to be solved is to determine the number of pheasants & rabbits that match the following constraints: the total number of animals is twenty and we have the total number of legs equals fifty six.
 
 [source, FSharp]
 -----
-  open System
-  open Operations.Research.Types
-  open Operations.Research.Models
-  open Operations.Research.Solvers.Google.Constraint
+open System
+open Operations.Research.Types
+open Operations.Research.Models
+open Operations.Research.Solvers.Google.Constraint
 
-  let r = Variable.Integer("rabbits", 0, 100)
-  let p = Variable.Integer("pheasants", 0, 100)
+let r = Variable.Integer("rabbits", 0, 100)
+let p = Variable.Integer("pheasants", 0, 100)
 
-  let mdl =
-    Model.Default
-    |> DecisionVars [r; p]
-    |> Constraints [
-      r + p === 20
-      4*r + 2*p === 56
-    ]
+let mdl =
+  Model.Default
+  |> DecisionVars [r; p]
+  |> Constraints [
+    r + p === 20
+    4*r + 2*p === 56
+  ]
 
-  let result = Solve mdl
+let result = Solve mdl
 
-  match result with
-  | Solution sol ->
-      printfn "%s: %i" (sol.Variables.["rabbits"].Name) (sol.Variables.["rabbits"].Data.toInt)
-      printfn "%s: %i" (sol.Variables.["pheasants"].Name) (sol.Variables.["pheasants"].Data.toInt)
-  | Error e ->
-      printfn "%A" e
+match result with
+| Solution sol ->
+    printfn "%s: %i" (sol.Variables.["rabbits"].Name) (sol.Variables.["rabbits"].Data.toInt)
+    printfn "%s: %i" (sol.Variables.["pheasants"].Name) (sol.Variables.["pheasants"].Data.toInt)
+| Error e ->
+    printfn "%A" e
 -----
