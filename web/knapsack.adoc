@@ -1,0 +1,76 @@
+:toc: right
+:toclevels: 2
+:toc-title: Knapsack Problem
+:nofooter:
+:icons: font
+:stem:
+
+== Knapsack Problem
+
+Its early Saturday morning and you just want to get your grocery shopping out of the way. You grab the list of the fridge and remark that you waited a bit too long to restock. You head to the car and go to the store. As it is early, virtually no one is there and you get done pretty quickly. You managed to get everything on the list. Sweet! As you head to the register, you realize that the cart would be more than the weekly grocery budget, $80. You must now figure out the best combination of items to buy while still within budget and getting most of what you need. The List of items include the following:
+
+[%hardbreaks]
+Item 01: $9
+Item 02: $8
+Item 03: $2
+Item 04: $12
+Item 05: $4
+Item 06: $6
+Item 07: $10
+Item 08: $7
+Item 09: $4
+Item 10: $2
+Item 11: $11
+Item 12: $9
+Item 13: $4
+Item 14: $16
+Item 15: $7
+Item 16: $10
+Item 17: $2
+Item 18: $12
+Item 19: $8
+
+=== Analysis
+
+So we need to figure out the best combination of items that fit within our budget. This problem is known as the knapsack problem where given a set of items with their cost (*`v`*) and associated weight (*`w`*), we want to select (via variable *`x`*) a subset of items that do not exceed our maximal capacity of the container.
+
+[%hardbreaks]
+Maximize stem:[sum_(i=1)^N v_i*x_i]
+subject to stem:[sum_(i=1)^N w_i*x_i <= W] where stem:[x_i in {0,1}]
+
+
+For our case we are only considering the value of the item and neglecting its weight. However we set each items' weight equal to its cost as a proxy for selection. Therefore we can use our budget value as a constraint bound, `W`. A variation of this problem would be to have cost *and* weight constraints. For example, we have $80 to spend but only have 3 bags with a combined carrying capacity of 50lb.
+
+Here we are going to use a special solver as part of OrTools, KnapsackSolver.
+
+[source, fsharp]
+----
+let capacities = [80L]
+let costs = [9L; 8L; 2L; 12L; 4L; 6L; 10L; 7L; 4L; 2L; 11L; 9L; 4L; 16L; 7L; 10L; 2L; 12L; 8L]
+let weights = [9L; 8L; 2L; 12L; 4L; 6L; 10L; 7L; 4L; 2L; 11L; 9L; 4L; 16L; 7L; 10L; 2L; 12L; 8L]
+let totalItems = costs.Length
+
+let modifiedWeights = array2D [List.toSeq weights]
+
+let ks = knapsackSolve "ks" KnapsackSolverAlgorithm.DynamicProgramming costs modifiedWeights capacities
+let computedProfit = ks.Solve();
+
+printfn "Total: %d" computedProfit
+for i in 0 .. (totalItems-1) do
+  printf "%s " (if ks.BestSolutionContains(i) then "1" else "0")
+----
+
+[NOTE]
+====
+The *modifiedWeights* is just a transformation from a specific F# datastructure to one the solver can understand but the concept is the same. Behind the scenes the solver is creating a linear program per the equation given but these functions just make it easier to write, agreed?
+====
+
+We find we have to choose items\: 1,2,4,5,6,7,8,9,11, and 12. Per the equation we have a binary variable in our objective function which is used to select the approprate cost.
+
+
+We've selected the items needed and within budget. Now head home to cook a delicious meal. Play with the costs and see what combinations of items you can fit into your grocery store budget.
+
+=== Further Reading
+[%hardbreaks]
+https://en.wikipedia.org/wiki/Knapsack_problem[Knapsack Problem]
+https://developers.google.com/optimization/bin/knapsack[Or-Tools Knapsack Solver]

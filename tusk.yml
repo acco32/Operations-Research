@@ -6,7 +6,7 @@ tasks:
   docs:
     usage: Build the docs
     run:
-      - asciidoctor docs/*.adoc
+      - asciidoctor web/*.adoc -D docs
   test:
     usage: Run unit tests for entire repository
     run:

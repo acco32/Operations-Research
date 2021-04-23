@@ -10,4 +10,5 @@ Over the past few years, I have been increasingly fascinated with Operations Res
 <<getting_started.adoc#,Getting Started>>
 <<linear.adoc#,Linear Programming>>
 <<constraint.adoc#, Constraint Programming>>
+<<knapsack.adoc#, Knapsack Problem>>
 <<resources.adoc#, Tools & Resources>>
