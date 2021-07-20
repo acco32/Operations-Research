@@ -8,7 +8,7 @@
       "name": "Debug Test",
       "type": "coreclr",
       "request": "launch",
-      "program": "${workspaceFolder}/or.test/bin/Debug/netcoreapp2.2/Operations.Research.Test.dll",
+      "program": "${workspaceFolder}/or.test/bin/Debug/net5.0/Operations.Research.Test.dll",
       "args": [],
       "preLaunchTask": "build",
       "cwd": "${workspaceFolder}",
