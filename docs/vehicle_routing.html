@@ -5,8 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<meta name="author" content="Operations Research with F#.">
-<title>F#OR</title>
+<title>Capacitated Vehicle Routing Problem</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,31 +435,179 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-<body class="article">
+<body class="article toc2 toc-right">
 <div id="header">
-<h1>F#OR</h1>
-<div class="details">
-<span id="author" class="author">Operations Research with F#.</span><br>
+<div id="toc" class="toc2">
+<div id="toctitle">Capacitated Routing</div>
+<ul class="sectlevel1">
+<li><a href="#_capacitated_vehicle_routing_problem">Capacitated Vehicle Routing Problem</a>
+<ul class="sectlevel2">
+<li><a href="#_analysis">Analysis</a></li>
+<li><a href="#_further_reading">Further Reading</a></li>
+</ul>
+</li>
+</ul>
 </div>
 </div>
 <div id="content">
-<div class="imageblock">
+<div class="sect1">
+<h2 id="_capacitated_vehicle_routing_problem">Capacitated Vehicle Routing Problem</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This problem involves vehicles that need to make a route where each vehicle has limited carrying capacity. The following example is from <a href="https://developers.google.com/optimization/routing/cvrp">OR-Tools</a> introduction where we calculate a delivery run for four vehicles.</p>
+</div>
+<div class="sect2">
+<h3 id="_analysis">Analysis</h3>
+<div class="paragraph">
+<p>The API have a set of special inputs that help us model the problem and solve it in a concise manner. Inour case we have: the demands for each stop (or node) in our route; the total number of vehicles at our disposal; and the capacity of each vehicle. We also declare the starting point which is analogous to the warehouse.</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master" alt="Operations Research">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">let distanceMatrix = array2D [
+      [ ... ];
+      [ ... ];
+      [ ... ];
+      ...
+    ]
+
+let demands = [0L; 1L; 1L; 2L; 4L; 2L; 4L; 8L; 8L; 1L; 2L; 1L; 2L; 4L; 4L; 8L; 8L]
+let vehicleCapacities = [15L; 15L; 15L; 15L]
+let totalVehicles = vehicleCapacities.Length
+let depot = 0</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Over the past few years, I have been increasingly fascinated with Operations Research and its applications: Economic models; Scheduling; Engineering &amp; Design; etcetera. Operations Research has provided a wealth of good to society as a whole. This library is a general resource for using the F# Operations Research module. Hope you have fun with it.</p>
+<p>Now we configure the API parameters to solve the problem. The API is mainly composed of C# constructs and as such we require some intermediaries to pass into the solver.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">// Create Routing Index Manager
+let manager = new RoutingIndexManager(demands.Length, totalVehicles, depot)
+
+// Create Routing Model.
+let routing = new RoutingModel(manager)
+
+// Create and register a transit callback
+let distance : LongLongToLong =
+  let dist (fromIndex:int64) ( toIndex:int64): int64 =
+    let fromNode = manager.IndexToNode(fromIndex)
+    let toNode = manager.IndexToNode(toIndex)
+    distanceMatrix.[fromNode, toNode]
+
+  LongLongToLong(dist)
+
+// Define cost of each arc
+let transitCallbackIndex = routing.RegisterTransitCallback(distance)
+routing.SetArcCostEvaluatorOfAllVehicles(transitCallbackIndex)
+
+// Add Capacity constraint
+let demandCallbackIndex = routing.RegisterUnaryTransitCallback(fun (fromIndex:int64) -&gt; demands.[manager.IndexToNode(fromIndex)])
+
+routing.AddDimensionWithVehicleCapacity(demandCallbackIndex, 0L, List.toArray vehicleCapacities, true, "Capacity") |&gt; ignore
+
+
+// Setting first solution heuristic.
+let searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters()
+searchParameters.FirstSolutionStrategy &lt;- FirstSolutionStrategy.Types.Value.PathCheapestArc
+searchParameters.LocalSearchMetaheuristic &lt;- LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch
+
+let timeLimit = Duration()
+timeLimit.Seconds &lt;- 1L
+searchParameters.TimeLimit &lt;- timeLimit
+
+// Solve
+let solution = routing.SolveWithParameters(searchParameters)</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The <strong>distance</strong> function uses a type created by the internal solver. This function is called with the original matrix definition ot calculate the distances.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p><a href="getting_started.html">Getting Started</a><br>
-<a href="linear.html">Linear Programming</a><br>
-<a href="constraint.html">Constraint Programming</a><br>
-<a href="knapsack.html">Knapsack Problem</a><br>
-<a href="vehicle_routing.html">Capacitated Routing</a><br>
-<a href="resources.html">Tools &amp; Resources</a></p>
+<p>Now that we have our solver configured, we can extract the necessary information. To make interacting with the API easier some additional structures are used which represent each vehicle in the fleet.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">type VehicleRoute = {
+  ID: string
+  Route: int64 list
+  Distance: int64
+  Capacity: int64
+}
+
+let routes =
+  seq { 0 .. 1 .. (totalVehicles-1)}
+  |&gt; Seq.map (fun vehicle -&gt;
+
+    // get route
+    let mutable index = routing.Start(vehicle)
+    let mutable route = []
+    while (routing.IsEnd(index).Equals(false)) do
+      let nodeIndex = int64(manager.IndexToNode(index))
+      route &lt;- route@[nodeIndex]
+      index &lt;- solution.Value(routing.NextVar(index))
+
+    route &lt;- route@[route.Head]
+
+    // get distance
+    let dist = List.windowed 2 route |&gt; List.map (fun e -&gt; routing.GetArcCostForVehicle(e.[0], e.[1], int64(vehicle)) ) |&gt; List.sum
+
+    // get capacity
+    let cap = route |&gt; List.map (fun e -&gt; demands.[int(e)]) |&gt; List.sum
+
+    {ID=vehicle.ToString(); Route=route; Distance=dist; Capacity=cap}
+  )
+  |&gt; Seq.toList</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Notice for each route we add back the starting point which is included in the full distance for a particlar vehicle. We can now get the routes (and other information) for our fleet. For example for vehicle <strong>0</strong>, <code>routes.[0].Route=[0L; 4L; 3L; 1L; 7L; 0L]</code>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_further_reading">Further Reading</h3>
+<div class="paragraph">
+<p><a href="https://developers.google.com/optimization/routing">Or-Tools Routing Overview</a></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
 </body>
 </html>

@@ -1,0 +1,121 @@
+:toc: right
+:toclevels: 2
+:toc-title: Capacitated Routing
+:nofooter:
+:icons: font
+:stem:
+
+== Capacitated Vehicle Routing Problem
+
+This problem involves vehicles that need to make a route where each vehicle has limited carrying capacity. The following example is from https://developers.google.com/optimization/routing/cvrp[OR-Tools] introduction where we calculate a delivery run for four vehicles.
+
+
+=== Analysis
+
+The API have a set of special inputs that help us model the problem and solve it in a concise manner. Inour case we have: the demands for each stop (or node) in our route; the total number of vehicles at our disposal; and the capacity of each vehicle. We also declare the starting point which is analogous to the warehouse.
+
+[source, fsharp]
+-----
+let distanceMatrix = array2D [
+      [ ... ];
+      [ ... ];
+      [ ... ];
+      ...
+    ]
+
+let demands = [0L; 1L; 1L; 2L; 4L; 2L; 4L; 8L; 8L; 1L; 2L; 1L; 2L; 4L; 4L; 8L; 8L]
+let vehicleCapacities = [15L; 15L; 15L; 15L]
+let totalVehicles = vehicleCapacities.Length
+let depot = 0
+-----
+
+Now we configure the API parameters to solve the problem. The API is mainly composed of C# constructs and as such we require some intermediaries to pass into the solver.
+
+[source, fsharp]
+-----
+// Create Routing Index Manager
+let manager = new RoutingIndexManager(demands.Length, totalVehicles, depot)
+
+// Create Routing Model.
+let routing = new RoutingModel(manager)
+
+// Create and register a transit callback
+let distance : LongLongToLong =
+  let dist (fromIndex:int64) ( toIndex:int64): int64 =
+    let fromNode = manager.IndexToNode(fromIndex)
+    let toNode = manager.IndexToNode(toIndex)
+    distanceMatrix.[fromNode, toNode]
+
+  LongLongToLong(dist)
+
+// Define cost of each arc
+let transitCallbackIndex = routing.RegisterTransitCallback(distance)
+routing.SetArcCostEvaluatorOfAllVehicles(transitCallbackIndex)
+
+// Add Capacity constraint
+let demandCallbackIndex = routing.RegisterUnaryTransitCallback(fun (fromIndex:int64) -> demands.[manager.IndexToNode(fromIndex)])
+
+routing.AddDimensionWithVehicleCapacity(demandCallbackIndex, 0L, List.toArray vehicleCapacities, true, "Capacity") |> ignore
+
+
+// Setting first solution heuristic.
+let searchParameters = operations_research_constraint_solver.DefaultRoutingSearchParameters()
+searchParameters.FirstSolutionStrategy <- FirstSolutionStrategy.Types.Value.PathCheapestArc
+searchParameters.LocalSearchMetaheuristic <- LocalSearchMetaheuristic.Types.Value.GuidedLocalSearch
+
+let timeLimit = Duration()
+timeLimit.Seconds <- 1L
+searchParameters.TimeLimit <- timeLimit
+
+// Solve
+let solution = routing.SolveWithParameters(searchParameters)
+-----
+
+[NOTE]
+====
+The *distance* function uses a type created by the internal solver. This function is called with the original matrix definition ot calculate the distances.
+====
+
+Now that we have our solver configured, we can extract the necessary information. To make interacting with the API easier some additional structures are used which represent each vehicle in the fleet.
+
+[source, fsharp]
+-----
+
+type VehicleRoute = {
+  ID: string
+  Route: int64 list
+  Distance: int64
+  Capacity: int64
+}
+
+let routes =
+  seq { 0 .. 1 .. (totalVehicles-1)}
+  |> Seq.map (fun vehicle ->
+
+    // get route
+    let mutable index = routing.Start(vehicle)
+    let mutable route = []
+    while (routing.IsEnd(index).Equals(false)) do
+      let nodeIndex = int64(manager.IndexToNode(index))
+      route <- route@[nodeIndex]
+      index <- solution.Value(routing.NextVar(index))
+
+    route <- route@[route.Head]
+
+    // get distance
+    let dist = List.windowed 2 route |> List.map (fun e -> routing.GetArcCostForVehicle(e.[0], e.[1], int64(vehicle)) ) |> List.sum
+
+    // get capacity
+    let cap = route |> List.map (fun e -> demands.[int(e)]) |> List.sum
+
+    {ID=vehicle.ToString(); Route=route; Distance=dist; Capacity=cap}
+  )
+  |> Seq.toList
+-----
+
+Notice for each route we add back the starting point which is included in the full distance for a particlar vehicle. We can now get the routes (and other information) for our fleet. For example for vehicle **0**, `routes.[0].Route=[0L; 4L; 3L; 1L; 7L; 0L]`.
+
+
+=== Further Reading
+[%hardbreaks]
+https://developers.google.com/optimization/routing[Or-Tools Routing Overview]

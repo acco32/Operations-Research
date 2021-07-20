@@ -6,8 +6,7 @@ module ``Google Solver - Routing`` =
   open Xunit
   open FsUnit.Xunit
   open Google.OrTools.ConstraintSolver
-  open Google.Protobuf.WellKnownTypes;
-
+  open Google.Protobuf.WellKnownTypes
 
   type VehicleRoute = {
       ID: string
@@ -48,7 +47,7 @@ module ``Google Solver - Routing`` =
     // Create Routing Index Manager
     let manager = new RoutingIndexManager(demands.Length, totalVehicles, depot)
 
-    // Create Routing Model.
+    // Create Routing Model
     let routing = new RoutingModel(manager)
 
     // Create and register a transit callback
@@ -102,7 +101,7 @@ module ``Google Solver - Routing`` =
         // get capacity
         let cap = route |> List.map (fun e -> demands.[int(e)]) |> List.sum
 
-        {ID= vehicle.ToString(); Route=route; Distance=dist; Capacity=cap}
+        {ID=vehicle.ToString(); Route=route; Distance=dist; Capacity=cap}
       )
       |> Seq.toList
 
@@ -124,6 +123,3 @@ module ``Google Solver - Routing`` =
 
     let totalDistance = routes |> List.map (fun f -> f.Distance) |> List.sum
     totalDistance |> should equal 6208L
-
-
-

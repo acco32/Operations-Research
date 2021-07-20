@@ -65,7 +65,7 @@ for i in 0 .. (totalItems-1) do
 The *modifiedWeights* is just a transformation from a specific F# datastructure to one the solver can understand but the concept is the same. Behind the scenes the solver is creating a linear program per the equation given but these functions just make it easier to write, agreed?
 ====
 
-We find we have to choose items\: 1,2,4,5,6,7,8,9,11, and 12. Per the equation we have a binary variable in our objective function which is used to select the approprate cost.
+We find we have to choose items: 1,2,4,5,6,7,8,9,11, and 12. Per the equation we have a binary variable in our objective function which is used to select the approprate cost.
 
 
 We've selected the items needed and within budget. Now head home to cook a delicious meal. Play with the costs and see what combinations of items you can fit into your grocery store budget.
