@@ -11,5 +11,5 @@ Over the past few years, I have been increasingly fascinated with Operations Res
 <<linear.adoc#,Linear Programming>>
 <<constraint.adoc#, Constraint Programming>>
 <<knapsack.adoc#, Knapsack Problem>>
-<<vehicle_routing.adoc#, Capacitated Routing>>
+<<routing_capacity_constraints.adoc#, Routing with Capacity Constraints>>
 <<resources.adoc#, Tools & Resources>>

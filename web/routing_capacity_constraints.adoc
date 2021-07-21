@@ -1,11 +1,11 @@
 :toc: right
 :toclevels: 2
-:toc-title: Capacitated Routing
+:toc-title: Routing with Capacities
 :nofooter:
 :icons: font
 :stem:
 
-== Capacitated Vehicle Routing Problem
+== Typical Example
 
 This problem involves vehicles that need to make a route where each vehicle has limited carrying capacity. The following example is from https://developers.google.com/optimization/routing/cvrp[OR-Tools] introduction where we calculate a delivery run for four vehicles.
 

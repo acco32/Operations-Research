@@ -5,7 +5,7 @@
 :icons: font
 :stem:
 
-== Knapsack Problem
+== Grocery Shopping
 
 Its early Saturday morning and you just want to get your grocery shopping out of the way. You grab the list of the fridge and remark that you waited a bit too long to restock. You head to the car and go to the store. As it is early, virtually no one is there and you get done pretty quickly. You managed to get everything on the list. Sweet! As you head to the register, you realize that the cart would be more than the weekly grocery budget, $80. You must now figure out the best combination of items to buy while still within budget and getting most of what you need. The List of items include the following:
 
