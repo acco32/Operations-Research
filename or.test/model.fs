@@ -3,11 +3,14 @@ namespace Operations.Research.Test
 module ``Models`` =
 
   open System
+  open System.IO
   open Xunit
   open FsUnit.Xunit
   open Operations.Research.Types
   open Operations.Research.Models
 
+
+  let TEST_DATA = "data"
 
   [<Fact>]
   let ``create model with decision variables``() =
@@ -73,3 +76,10 @@ module ``Models`` =
     Assert.Throws<Exception>( fun () ->
         1*x =/= 2.0 |> ignore
     )
+
+  [<Fact>]
+  let ``read MathProg model``() =
+    let mdl = Read(Path.Combine(TEST_DATA, "simple-lp.mod"))
+    mdl |> should equal Model.Default
+
+

@@ -2,6 +2,7 @@ namespace Operations.Research
 
 module Models =
   open System
+  open System.IO
   open Operations.Research.Types
 
   let inline (<==) (exp:Expression) (s:obj) =
@@ -63,3 +64,28 @@ module Models =
 
     let cons = List.map2 (fun row vector -> createConstraintFromRow row vector) m vec
     {mdl with Constraints = cons}
+
+  /// Read a MathProg model
+  let Read (modelPath:string) : Model =
+    if File.Exists(modelPath) <> true then
+      failwith "File does not exist"
+
+    let lines = seq { yield! File.ReadLines modelPath }
+
+    let parseModel (line:string) (mdl:Model) : Model =
+
+      match line with
+      | "var" -> printfn "%s" line
+      | "s.t" | "such that" -> printfn "%s" line
+      | _ -> ()
+
+      Model.Default
+
+    let mutable mdl = Model.Default
+
+    for rawLine in lines do
+        let line = rawLine.Trim()
+        mdl <- parseModel line mdl
+
+    mdl
+
