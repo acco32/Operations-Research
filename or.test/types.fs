@@ -43,7 +43,7 @@ module ``Basic Types`` =
     let x = Variable.integer "a" 0 1 |> toExpression
     let result = 1*x
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 1
+    result.Terms |> should haveLength 1
 
 
   [<Fact>]
@@ -51,7 +51,7 @@ module ``Basic Types`` =
     let x = Variable.real "a" 0. 1. |> toExpression
     let result = 1*x
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 1
+    result.Terms |> should haveLength 1
 
 
   [<Fact>]
@@ -61,7 +61,7 @@ module ``Basic Types`` =
 
     let result = x + y
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 2
+    result.Terms |> should haveLength 2
 
 
   [<Fact>]
@@ -70,7 +70,7 @@ module ``Basic Types`` =
 
     let result = x + 77
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 2
+    result.Terms |> should haveLength 2
 
 
   [<Fact>]
@@ -79,7 +79,7 @@ module ``Basic Types`` =
 
     let result = x + 77.0
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 2
+    result.Terms |> should haveLength 2
 
 
   [<Fact>]
@@ -89,7 +89,7 @@ module ``Basic Types`` =
 
     let result = x + 2*y
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 2
+    result.Terms |> should haveLength 2
 
 
   [<Fact>]
@@ -100,7 +100,7 @@ module ``Basic Types`` =
 
     let result = x + 2*y + 5*z + 80
     result |> should be instanceOfType<Expression>
-    result |> should haveLength 4
+    result.Terms |> should haveLength 4
 
 
   [<Fact>]

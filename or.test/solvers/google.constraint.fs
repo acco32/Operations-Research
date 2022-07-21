@@ -11,8 +11,8 @@ module ``Google Solver - Constraint`` =
 
   [<Fact>]
   let ``Rabbits/Pheasants``() =
-    let r = Variable.Integer("r", 0, 100)
-    let p = Variable.Integer("p", 0, 100)
+    let r = Variable.integer "r" 0 100 |> toExpression
+    let p = Variable.integer "p" 0 100 |> toExpression
 
     let mdl =
       Model.Default
@@ -26,19 +26,21 @@ module ``Google Solver - Constraint`` =
 
     match result with
     | Solution sol ->
-        sol.Variables.[r.Name].Name |> should equal r.Name
-        sol.Variables.[r.Name].Data.toInt |> should equal 8
 
-        sol.Variables.[p.Name].Name |> should equal p.Name
-        sol.Variables.[p.Name].Data.toInt |> should equal 12
+        sol.Variables.ContainsKey(r.var().Name) |> should be True
+        sol.Variables.[r.var().Name] |> should equal 8.0
+
+        sol.Variables.ContainsKey(p.var().Name) |> should be True
+        sol.Variables.[p.var().Name] |> should equal 12.0
+
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 
   [<Fact>]
   let ``Solve with 10 second time limit``() =
-    let x = Variable.Integer("x", 0, 2)
-    let y = Variable.Integer("y", 0, 2)
-    let z = Variable.Integer("z", 0, 2)
+    let x = Variable.integer "x" 0 2 |> toExpression
+    let y = Variable.integer "y" 0 2 |> toExpression
+    let z = Variable.integer "z" 0 2 |> toExpression
 
     let mdl =
       Model.Default
@@ -52,14 +54,15 @@ module ``Google Solver - Constraint`` =
 
     match result with
     | Solution sol ->
-        sol.Variables.[x.Name].Name |> should equal x.Name
-        sol.Variables.[x.Name].Data.toInt |> should equal 1
+        sol.Variables.ContainsKey(x.var().Name) |> should be True
+        sol.Variables.[x.var().Name] |> should equal 1.0
 
-        sol.Variables.[y.Name].Name |> should equal y.Name
-        sol.Variables.[y.Name].Data.toInt |> should equal 0
+        sol.Variables.ContainsKey(y.var().Name) |> should be True
+        sol.Variables.[y.var().Name] |> should equal 0.0
 
-        sol.Variables.[z.Name].Name |> should equal z.Name
-        sol.Variables.[z.Name].Data.toInt |> should equal 0
+        sol.Variables.ContainsKey(z.var().Name) |> should be True
+        sol.Variables.[z.var().Name] |> should equal 0.0
+
     | Error e ->
         Assert.True(false, sprintf "%A" e)
 

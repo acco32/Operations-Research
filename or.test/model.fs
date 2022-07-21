@@ -13,8 +13,8 @@ module ``Models`` =
   let ``create model with decision variables``() =
     let mdl = Model.Default
 
-    let x = Variable.Bool "a"
-    let y = Variable.Bool "b"
+    let x = Variable.boolean "a" |> toExpression
+    let y = Variable.boolean "b" |> toExpression
 
     let newMdl = mdl |> DecisionVars [x; y]
     newMdl.Variables |> should haveLength 2
@@ -23,8 +23,8 @@ module ``Models`` =
   let ``create model with constraints``() =
     let mdl = Model.Default
 
-    let x = Variable.Real("a", 0.0, 20.0)
-    let y = Variable.Real("b", -4.0, 100.0)
+    let x = Variable.real "a" 0.0 20.0 |> toExpression
+    let y = Variable.real "b" -4.0 100.0 |> toExpression
     let c1 = 1.0*x + (-3.4*y) <== 4.5
     let c2 = 3.0*x + 4.9*y >== 50.0
     let c3 = 1.0*x + 1.0*y + 6.0 === 5.0
@@ -35,8 +35,8 @@ module ``Models`` =
   [<Fact>]
   let ``create model with objective function expression``() =
     let mdl = Model.Default
-    let x = Variable.Real("a", 0.0, 20.0)
-    let y = Variable.Real("b", -4.0, 100.0)
+    let x = Variable.real "a" 0.0 20.0 |> toExpression
+    let y = Variable.real "b" -4.0 100.0 |> toExpression
     let obj = 1.0*x + 0.4*y
 
     let newMdl = mdl |> Objective obj
@@ -51,25 +51,25 @@ module ``Models`` =
 
   [<Fact>]
   let ``create constraint with less than or equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
+    let x = Variable.real "x" 0. 1. |> toExpression
     let c = 1.0*x <== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
   let ``create constraint with greater than or equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
+    let x = Variable.real "x" 0. 1. |> toExpression
     let c = 1.0*x >== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
   let ``create constraint with equal operator``()=
-    let x = Variable.Real("x", 0., 1.)
+    let x = Variable.real "x" 0. 1. |> toExpression
     let c = 1.0*x === 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
   let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
-    let x = Variable.Real("x", 0., 1.)
+    let x = Variable.real "x" 0. 1. |> toExpression
     Assert.Throws<Exception>( fun () ->
         1*x =/= 2.0 |> ignore
     )

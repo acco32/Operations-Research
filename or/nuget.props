@@ -6,13 +6,13 @@
     <Copyright>Matthew Moore 2021</Copyright>
     <PackageTags>F#, Operations Research, Mathematics</PackageTags>
     <RepositoryUrl>https://github.com/acco32/Operations-Research</RepositoryUrl>
-    <License>https://github.com/acco32/Operations-Research/blob/master/LICENCE.md</License>
+    <License>https://github.com/acco32/Operations-Research/blob/master/LICENCE</License>
     <PackageIconUrl></PackageIconUrl>
     <PackageOutputPath>../packages</PackageOutputPath>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <Files>
       <File src="../VERSION" />
-      <File src="../LICENCE.md" />
+      <File src="../LICENCE" />
     </Files>
   </PropertyGroup>
 </Project>

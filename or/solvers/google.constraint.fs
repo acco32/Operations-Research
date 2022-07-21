@@ -25,29 +25,29 @@ module Constraint =
 
     let model = CpModel()
 
-    let vars:Map<String, IntVar> =
+    let vars =
       mdl.Variables
-      |> List.map (fun v -> v.Name, model.NewIntVar(int64(v.LowerBound.toInt), int64(v.UpperBound.toInt), v.Name))
+      |> List.map ( fun (e:Expression) ->
+          let term = e.var()
+          term.Name, model.NewIntVar(int64(term.Bounds.Lower.toInt), int64(term.Bounds.Upper.toInt), term.Name)
+        )
       |> Map.ofList
 
-    mdl.Constraints
-    |> List.iter (fun (cnsrnt:Operations.Research.Types.Constraint) ->
+    mdl.Constraints |> List.iter (fun (cnsrnt:Operations.Research.Types.Constraint) ->
 
       let (Constraint(expr, bnds)) = cnsrnt
 
-      let oprndsMap = (expr.Statement) |> List.map ( fun (v:Operand) ->
-        match v with
-        | Constant(c) ->
-            1L*model.NewConstant(int64(c.toInt))
-        | Argument(a) ->
-            1L*vars.[a.Name]
-        | CoefficientArgument(c,a) ->
-            int64(c.toInt) * vars.[a.Name]
-
-      )
-
       // LHS
-      let oprnds = List.reduce (+) oprndsMap
+      let oprnds =
+        expr.Terms
+        |> List.map ( fun (trm:Term) ->
+
+              match trm.Bounds.Lower, trm.Bounds.Upper, trm.IsBoolean with
+              | _, _, true -> int64(trm.Coefficient.toInt) * model.NewBoolVar(trm.Name)
+              | lb, ub, _ when lb = ub -> 1L * model.NewConstant(int64(lb.toInt), trm.Name)
+              | lb, ub, _ -> int64(trm.Coefficient.toInt) * vars.[trm.Name]
+            )
+        |> List.reduce (+)
 
       // LHS & RHS
       let cons =
@@ -82,12 +82,8 @@ module Constraint =
     match result with
     | CpSolverStatus.Optimal | CpSolverStatus.Feasible ->
 
-        let varMap2 =
-          vars |> Map.map (fun k v ->
-            Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Domain.Min())); Upper=Number.Integer(int(v.Domain.Max())); Interval=Interval.Include}; Value=Number.Integer(int(solver.Value(v))) })
-          )
-
-        Solution({ Variables = varMap2 ; Objective = Number.Real(solver.Response.ObjectiveValue); Optimal = false})
+        let varMap = vars |> Map.map ( fun _ v -> float(solver.Value(v)) )
+        Solution({ Variables = varMap ; Objective = Number.Real(solver.Response.ObjectiveValue); Optimal = result.Equals(CpSolverStatus.Optimal)})
 
     | CpSolverStatus.Infeasible as err ->
       Error({Code=int(err); Message="Infeasible"})

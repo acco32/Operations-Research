@@ -79,62 +79,54 @@ module Linear =
 
     let mutable vars = List.Empty
 
-    let convertVar (v:Operations.Research.Types.Variable) : Variable =
-      match v with
-      | Boolean(b) -> solver.MakeBoolVar(b.Name)
-      | Number(n) ->
-          match n.Value with
-          | Number.Real(r) ->
-              solver.MakeNumVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
-          | Number.Integer(i) ->
-              solver.MakeIntVar(n.Bounds.Lower.toFloat, n.Bounds.Upper.toFloat, n.Name)
+    let vars = mdl.Variables |> List.map ( fun (e:Expression) ->
+        let term = e.var()
+        match term.IsBoolean with
+        | true -> solver.MakeBoolVar(term.Name)
+        | false -> solver.MakeNumVar(term.Bounds.Lower.toFloat, term.Bounds.Upper.toFloat,term.Name)
+    )
 
-    let convertCons (cnst:Operations.Research.Types.Constraint) =
-      match cnst with
-      | Operations.Research.Types.Constraint(e, b) ->
-          match b.Interval with
-          | Include ->
-              let con = solver.MakeConstraint(b.Lower.toFloat, b.Upper.toFloat)
 
-              e.Statement |> List.iter (fun o ->
-                match o with
-                | Constant(c) ->
-                    let newVar = solver.MakeNumVar(c.toFloat, c.toFloat, c.ToString())
-                    vars <- vars@[newVar]
-                    con.SetCoefficient(newVar, 1.0)
-                | Argument(a) ->
-                    con.SetCoefficient(solver.LookupVariableOrNull(a.Name), 1.0)
-                | CoefficientArgument(c,a) ->
-                    con.SetCoefficient(solver.LookupVariableOrNull(a.Name), c.toFloat)
-              )
+    mdl.Constraints
+    |> List.iter (fun (cnsrnt:Operations.Research.Types.Constraint) ->
 
-          | Exclude ->
-              failwithf "Constraint not valid for this type of strategy: %s" opts.Strategy.Name
+      let (Operations.Research.Types.Constraint(expr, bnds)) = cnsrnt
 
-    let convertObjective (objFcn:Operations.Research.Types.Expression option): Objective =
-      let objective = solver.Objective()
+      match bnds.Interval with
+      | Include ->
+          let con = solver.MakeConstraint(bnds.Lower.toFloat, bnds.Upper.toFloat)
 
-      match objFcn with
-      | Some(expr) ->
-          expr.Statement |> List.iter (fun o ->
-            match o with
-            | Constant(c) ->
-                let newVar = solver.MakeNumVar(c.toFloat, c.toFloat, c.ToString())
-                vars <- vars @ [newVar]
-                objective.SetCoefficient(newVar, 1.0)
-            | Argument(a) ->
-                objective.SetCoefficient(solver.LookupVariableOrNull(a.Name), 1.0)
-            | CoefficientArgument(c,a) ->
-                objective.SetCoefficient(solver.LookupVariableOrNull(a.Name), c.toFloat)
+          expr.Terms |> List.iter (fun trm ->
+
+              match isNull(solver.LookupVariableOrNull(trm.Name)) with
+              | true ->
+                  con.SetCoefficient(solver.MakeNumVar(trm.Bounds.Lower.toFloat, trm.Bounds.Upper.toFloat, trm.Name), 1.0)
+              | false  ->
+                  con.SetCoefficient(solver.LookupVariableOrNull(trm.Name), trm.Coefficient.toFloat)
           )
-        | None -> failwith "Objective Function cannot be empty for Linear Solver"
 
-      objective
+      | Exclude ->
+          failwithf "Constraint not valid for this type of strategy: %s" opts.Strategy.Name
+
+    )
 
 
-    vars <- List.map convertVar mdl.Variables
-    let cons = List.iter convertCons mdl.Constraints
-    let objective = convertObjective mdl.Objective
+    let objective = solver.Objective()
+
+    match mdl.Objective with
+    | Some(expr) ->
+        expr.Terms
+        |> List.iter (fun trm ->
+
+              match isNull(solver.LookupVariableOrNull(trm.Name)) with
+              | true ->
+                  objective.SetCoefficient(solver.MakeNumVar(trm.Bounds.Lower.toFloat, trm.Bounds.Upper.toFloat, trm.Name), 1.0)
+              | false  ->
+                  objective.SetCoefficient(solver.LookupVariableOrNull(trm.Name), trm.Coefficient.toFloat)
+
+        )
+    | None -> failwith "Objective Function cannot be empty for Linear Solver"
+
 
     match mdl.Goal with
     | Maximize ->
@@ -149,28 +141,11 @@ module Linear =
     match result with
     | Solver.ResultStatus.OPTIMAL | Solver.ResultStatus.FEASIBLE ->
 
+      let varMap = List.fold (fun (m:Map<string,float>) (v:Variable) ->  m.Add( v.Name(), v.SolutionValue() ) ) Map.empty vars
+
       match opts.Strategy with
-      | LinearStrategy ->
-
-          let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
-            let result = v.SolutionValue()
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Real(v.Lb()); Upper=Number.Real(v.Ub()); Interval=Interval.Include}; Value=Number.Real(0.0) })
-            m.Add( v.Name(), resultVar.Set(result) )
-
-          let varMap = List.fold createVarMap Map.empty vars
-
-          Solution({ Variables = varMap ; Objective = Number.Real(solver.Objective().Value()); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
-
-      | IntegerStrategy ->
-
-          let createVarMap (m:Map<string,Operations.Research.Types.Variable>) (v:Variable) =
-            let result = int(v.SolutionValue())
-            let resultVar = Operations.Research.Types.Variable.Number( { Name=(v.Name()); Bounds={Lower=Number.Integer(int(v.Lb())); Upper=Number.Integer(int(v.Ub())); Interval=Interval.Include}; Value=Number.Integer(0) })
-            m.Add( v.Name(), resultVar.Set(result) )
-
-          let varMap = List.fold createVarMap Map.empty vars
-
-          Solution({ Variables = varMap ; Objective = Number.Integer(int(solver.Objective().Value())); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+      | LinearStrategy -> Solution({ Variables = varMap ; Objective = Number.Real(solver.Objective().Value()); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
+      | IntegerStrategy -> Solution({ Variables = varMap ; Objective = Number.Integer(int(solver.Objective().Value())); Optimal = (result.Equals(Solver.ResultStatus.OPTIMAL))})
 
     | Solver.ResultStatus.INFEASIBLE as err ->
       Error({Code=int(err); Message="Infeasible"})
@@ -183,7 +158,4 @@ module Linear =
 
   let Solve (mdl:Model) : SolverResult =
     SolveWithCustomOptions mdl SolverOptions.Default
-
-
-
 

@@ -71,6 +71,10 @@ module Types =
     | (:? Expression as s), (:? Expression as t) ->
         {Terms=s.Terms@t.Terms}
     | _ -> failwith "Cannot use (+) operator on expression"
+  member this.var() : Term =
+    match this.Terms.Length with
+    | 1 -> this.Terms.Head
+    | _ -> failwith "Can only return variable of expression with single value"
 
   end
 
@@ -101,7 +105,7 @@ module Types =
 
     /// named variable with default bounds being the integer minimum and maximum of OS platform
     let realDefault (name:string) : Term =
-      real name Double.PositiveInfinity Double.PositiveInfinity
+      real name Double.NegativeInfinity Double.PositiveInfinity
 
     /// Variable in the domain of integer numbers
     let integer (name:string) (lowerBound:int) (upperBound:int) : Term =
@@ -141,6 +145,7 @@ module Types =
   /// Converts term to expression to be used in equations
   let toExpression (t:Term) : Expression = {Terms=[t]}
 
+  /// Evaluate expression at its terms' value
   let eval (exp:Expression) : Number =
     let a = List.map (fun term -> term.Coefficient.toFloat * Math.Pow(term.Value.toFloat, term.Exponent.toFloat)) exp.Terms
     let result = List.reduce (+) a
@@ -158,19 +163,19 @@ module Types =
     | Minimize
 
   type Model = {
-    Variables: Variable list
+    Variables: Expression list
     Objective: Expression option
     Constraints: Constraint list
     Goal: Goal
   }
   with
   static member Default =
-    {Variables=List.Empty; Objective=None; Constraints=List.Empty; Goal=Goal.Unset}
+    {Variables=List.empty; Objective=None; Constraints=List.Empty; Goal=Goal.Unset}
   end
 
   type SolverSolution = {
     Objective: Number;
-    Variables: Map<string, Variable>;
+    Variables: Map<string, float>;
     Optimal: bool;
   }
 
