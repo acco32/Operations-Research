@@ -14,8 +14,8 @@ open Operations.Research.Types
 open Operations.Research.Models
 open Operations.Research.Solvers.Google.Constraint
 
-let r = Variable.Integer("rabbits", 0, 100)
-let p = Variable.Integer("pheasants", 0, 100)
+let r = Variable.integer "r" 0 100 |> toExpression
+let p = Variable.integer "p" 0 100 |> toExpression
 
 let mdl =
   Model.Default
@@ -29,8 +29,8 @@ let result = Solve mdl
 
 match result with
 | Solution sol ->
-    printfn "%s: %i" (sol.Variables.["rabbits"].Name) (sol.Variables.["rabbits"].Data.toInt)
-    printfn "%s: %i" (sol.Variables.["pheasants"].Name) (sol.Variables.["pheasants"].Data.toInt)
+    printfn "%s: %f" (r.var().Name) (sol.Variables.[r.var().Name])
+    printfn "%s: %f" (p.var().Name) (sol.Variables.[p.var().Name])
 | Error e ->
     printfn "%A" e
 -----

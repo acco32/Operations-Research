@@ -1,12 +1,16 @@
-:toc: right
-:toclevels: 2
-:toc-title: Linear Programming
-:nofooter:
+# F#OR (Operations Research with F#)
 
-== Typical example
+Library to solve operations research problems in F#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. 
 
-[source, fsharp]
------
+## Solver Types
+
+* Linear Programming (Google MIP/LP)
+* Constraint Programming (Google CP-SAT)
+* Routing (Google Route API)
+
+## Example
+
+```fsharp
 open System
 open Operations.Research.Types
 open Operations.Research.Models
@@ -32,8 +36,8 @@ let result = SolveWithCustomOptions mdl SolverOptions.Default
 match result with
 | Solution sol ->
     printfn "Objective: %i" (sol.Objective.toInt)
-    printfn "%s: %f" (x.var().Name) (sol.Variables.[x.var().Name])
-    printfn "%s: %f" (y.var().Name) (sol.Variables.[y.var().Name])
+    printfn "%s: %i" "x" (sol.Variables.["x"])
+    printfn "%s: %i" "y" (sol.Variables.["y"])
 | Error e ->
-    printfn "%A" e
------
+    printfn e.Message
+```
