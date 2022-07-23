@@ -2,9 +2,9 @@ namespace Operations.Research.Solvers.Google
 
 module Constraint =
   open System
+  open Google.OrTools.Sat
   open Operations.Research.Types
   open Operations.Research.Models
-  open Google.OrTools.Sat
 
 
   type SolverOptions = {
@@ -44,7 +44,7 @@ module Constraint =
 
               match trm.Bounds.Lower, trm.Bounds.Upper, trm.IsBoolean with
               | _, _, true -> int64(trm.Coefficient.toInt) * model.NewBoolVar(trm.Name)
-              | lb, ub, _ when lb = ub -> 1L * model.NewConstant(int64(lb.toInt), trm.Name)
+              | lb, ub, _ when lb = ub -> 1L * model.NewConstant(int64(lb.toInt))
               | lb, ub, _ -> int64(trm.Coefficient.toInt) * vars.[trm.Name]
             )
         |> List.reduce (+)
