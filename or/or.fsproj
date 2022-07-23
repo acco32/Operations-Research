@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <AssemblyName>Operations.Research</AssemblyName>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GenerateProgramFile>false</GenerateProgramFile>
     <Version></Version>
   </PropertyGroup>
