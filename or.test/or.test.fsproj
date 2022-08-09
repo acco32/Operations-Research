@@ -15,6 +15,7 @@
     <Compile Include="solvers/google.linear.fs" />
     <Compile Include="solvers/google.constraint.fs" />
     <Compile Include="solvers/google.route.fs" />
+    <Compile Include="examples.fs" />
     <Compile Include="program.fs" />
   </ItemGroup>
 

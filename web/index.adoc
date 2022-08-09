@@ -9,6 +9,7 @@ Over the past few years, I have been increasingly fascinated with Operations Res
 [%hardbreaks]
 <<getting_started.adoc#,Getting Started>>
 <<linear.adoc#,Linear Programming>>
+<<graph.adoc#,Networks & Graphs>>
 <<constraint.adoc#, Constraint Programming>>
 <<knapsack.adoc#, Knapsack Problem>>
 <<routing_capacity_constraints.adoc#, Routing with Capacity Constraints>>

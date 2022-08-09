@@ -435,6 +435,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article toc2 toc-right">
 <div id="header">
@@ -442,6 +443,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="toctitle">Linear Programming</div>
 <ul class="sectlevel1">
 <li><a href="#_typical_example">Typical example</a></li>
+<li><a href="#_non_standard_forms">Non-Standard Forms</a></li>
+<li><a href="#_the_diet_problem">The Diet Problem</a></li>
 </ul>
 </div>
 </div>
@@ -484,6 +487,171 @@ match result with
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_non_standard_forms">Non-Standard Forms</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following is a problem with a set of constraints in various forms. The first methods solves this in the usual fashion.</p>
 </div>
+<div class="paragraph">
+<p>Minimize
+ \$-3x_0 + x_1 + x_2\$</p>
+</div>
+<div class="paragraph">
+<p>subject to
+ \$x_0 - 2x_1 + x_2 &lt;= 11\$
+ \$-4x_0 + x_1 + 2x_2 &gt;= 3\$
+ \$-2x_0 - x_2 = -1\$</p>
+</div>
+<div class="paragraph">
+<p>where \$x_i &gt;= AA i\$</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">let x0 = Variable.real "x0" 0.0 Double.PositiveInfinity |&gt; toExpression
+let x1 = Variable.real "x1" 0.0 Double.PositiveInfinity |&gt; toExpression
+let x2 = Variable.real "x2" 0.0 Double.PositiveInfinity |&gt; toExpression
+
+let mdl =
+  Model.Default
+  |&gt; DecisionVars [x0; x1; x2]
+  |&gt; Goal Minimize
+  |&gt; Objective  (-3*x0 + x1 + x2)
+  |&gt; Constraints [
+    x0 + (-2*x1) + x2 &lt;== 11
+    (-4*x0) + x1 + (2*x2) &gt;== 3
+    (-2*x0) +  (-1*x2) === -1
+  ]
+
+let result = SolveWithCustomOptions mdl SolverOptions.Default
+
+match result with
+| Solution sol -&gt;
+    printfn "Objective: %i" (sol.Objective.toInt)
+    printfn "%s: %f" (x0.var().Name) (sol.Variables.[x0.var().Name])
+    printfn "%s: %f" (x1.var().Name) (sol.Variables.[x1.var().Name])
+    printfn "%s: %f" (x2.var().Name) (sol.Variables.[x2.var().Name])
+| Error e -&gt;
+    printfn "%A" e</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The issue with this form is that we don&#8217;t have access to the slack/surplus variables for inspection. To do this, we explicitly create them and add to decision variables so that they can be included in final result. This time we enter the problem in matrix form.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">let x0 = Variable.real "x0" 0.0 Double.PositiveInfinity |&gt; toExpression
+let x1 = Variable.real "x1" 0.0 Double.PositiveInfinity |&gt; toExpression
+let x2 = Variable.real "x2" 0.0 Double.PositiveInfinity |&gt; toExpression
+
+let s0 = Variable.real "s0" 0.0 Double.PositiveInfinity |&gt; toExpression
+let s1 = Variable.real "s1" 0.0 Double.PositiveInfinity |&gt; toExpression
+
+
+let m = [
+  [1.0 ; -2.0 ; 1.0 ; 1.0 ; 0.0];
+  [-4.0 ; 1.0 ; 2.0 ; 0.0 ; -1.0];
+  [-2.0 ; 0.0 ; -1.0 ; 0.0 ; 0.0];
+]
+
+let eq = [11.0; 3.0; -1.0]
+
+let mdl =
+      Model.Default
+      |&gt; DecisionVars [x0; x1; x2; s0; s1]
+      |&gt; Goal Minimize
+      |&gt; Objective  (-3*x0 + x1 + x2)
+      |&gt; MatrixEq m eq
+
+let result = Solve mdl
+
+match result with
+| Solution sol -&gt;
+    printfn "Objective: %i" (sol.Objective.toInt)
+    printfn "%s: %f" (x0.var().Name) (sol.Variables.[x0.var().Name])
+    printfn "%s: %f" (x1.var().Name) (sol.Variables.[x1.var().Name])
+    printfn "%s: %f" (x2.var().Name) (sol.Variables.[x2.var().Name])
+
+    printfn "%s: %f" (s0.var().Name) (sol.Variables.[s0.var().Name])
+    printfn "%s: %f" (s1.var().Name) (sol.Variables.[s1.var().Name])
+| Error e -&gt;
+    printfn "%A" e</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_the_diet_problem">The Diet Problem</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following is a variation of <a href="https://en.wikipedia.org/wiki/Stigler_diet">Stigler&#8217;s diet problem</a> written by <a href="https://hanak.org">Hakan Kjellerstrand</a>. It was originally a mathematical exercise where nutritional needs can be met by a set of foods/products.</p>
+</div>
+<div class="paragraph">
+<p>Each product will have a set of characteristics for salt, sugar, fat, and number of calories per product. The model defines variables for the amount of each product that needs to be consumed to meet daily nutritional requirements.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">// products
+let A = Variable.integer  "A" 0 100 |&gt; toExpression
+let B = Variable.integer  "B" 0 100 |&gt; toExpression
+let C = Variable.integer  "C" 0 100 |&gt; toExpression
+let D = Variable.integer  "D" 0 100 |&gt; toExpression
+
+
+let mdl =
+  Model.Default
+  |&gt; DecisionVars [A; B; C; D]
+  |&gt; Goal Minimize
+  |&gt; Objective (50*A + 20*B + 30*C + 80*D)
+  |&gt; Constraints [
+        400*A + 200*B + 150*C + 500*D &gt;== 500;  // calories with minimum required intake
+        3*A + 2*B  &gt;== 6; // salt with minimum required intake
+        2*A + 2*B + 4*C + 4*D &gt;== 10; // sugar with minimum required intake
+        2*A + 4*B + C + 5*D &gt;== 8; // fat with minimum required intake
+      ]
+
+let result = Solve mdl
+
+match result with
+| Solution sol -&gt;
+    printfn "%s: %f" (A.var().Name) (sol.Variables.[A.var().Name])
+    printfn "%s: %f" (B.var().Name) (sol.Variables.[B.var().Name])
+    printfn "%s: %f" (C.var().Name) (sol.Variables.[C.var().Name])
+    printfn "%s: %f" (D.var().Name) (sol.Variables.[D.var().Name])
+
+| Error e -&gt;
+    printfn "%A" e</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that there is also a cost associated with each product and that is set as the objective. We want to stay healthy as cheaply as possible.</p>
+</div>
+</div>
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
 </body>
 </html>
