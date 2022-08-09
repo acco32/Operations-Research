@@ -5,8 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<meta name="author" content="Operations Research with F#.">
-<title>F#OR</title>
+<title>Maximum Flow</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -436,32 +435,193 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
-<body class="article">
+<body class="article toc2 toc-right">
 <div id="header">
-<h1>F#OR</h1>
-<div class="details">
-<span id="author" class="author">Operations Research with F#.</span><br>
+<div id="toc" class="toc2">
+<div id="toctitle">Networks &amp; Graphs</div>
+<ul class="sectlevel1">
+<li><a href="#_maximum_flow">Maximum Flow</a></li>
+<li><a href="#_maximum_flow_google_graph">Maximum Flow (Google.Graph)</a></li>
+</ul>
 </div>
 </div>
 <div id="content">
-<div class="imageblock">
+<div class="sect1">
+<h2 id="_maximum_flow">Maximum Flow</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here we have a graph of six nodes each of which have an input and output. The goal is to determine the optimal flow through the graph. This is done by maximizing the inputs to the starting nodes as much as possible.</p>
+</div>
+<div class="paragraph">
+<p>We label each pathway between node. And we create a pseudo source and sink nodes&#8212;&#8203;zero and seven respectively&#8212;&#8203;to properly capture the initial inputs and final outputs in the graph. Note for each node that the flow conservation must be preserved. With this in mind we now have the following model</p>
+</div>
+<div class="paragraph">
+<p>Maximize:<br>
+&nbsp;&nbsp;\$x_01 + x_02 + x_03\$<br>
+subject to:<br>
+&nbsp;&nbsp;<strong>node 1</strong> \$x_01 = x_14 + x_15\$<br>
+&nbsp;&nbsp;<strong>node 2</strong> \$x_02 = x_24 + x_25 + x_26\$<br>
+&nbsp;&nbsp;<strong>node 3</strong> \$x_03 = x_35\$<br>
+&nbsp;&nbsp;<strong>node 4</strong> \$x_47 = x_14 + x_24\$<br>
+&nbsp;&nbsp;<strong>node 5</strong> \$x_57 = x_15 + x_25 + x_35\$<br>
+&nbsp;&nbsp;<strong>node 6</strong> \$x_26 = x_67\$<br>
+where:<br>
+&nbsp;&nbsp;\$x_01 &lt;= 3\$ &nbsp; \$x_02 &lt;= 2\$ &nbsp; \$x_03 &lt;= 2\$<br>
+&nbsp;&nbsp;\$x_14 &lt;= 5\$ &nbsp; \$x_15 &lt;= 1\$ &nbsp; \$x_24 &lt;= 1\$<br>
+&nbsp;&nbsp;\$x_25 &lt;= 3\$ &nbsp; \$x_26 &lt;= 1\$ &nbsp; \$x_35 &lt;= 1\$<br>
+&nbsp;&nbsp;\$x_47 &lt;= 4\$ &nbsp; \$x_57 &lt;= 2\$ &nbsp; \$x_67 &lt;= 4\$</p>
+</div>
+<div class="listingblock">
 <div class="content">
-<img src="https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master" alt="Operations Research">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">let x01 = Variable.real "0-&gt;1" 0 3 |&gt; toExpression
+let x02 = Variable.real "0-&gt;2" 0 2 |&gt; toExpression
+let x03 = Variable.real "0-&gt;3" 0 2 |&gt; toExpression
+
+let x14 = Variable.real "1-&gt;4" 0 5 |&gt; toExpression
+let x15 = Variable.real "1-&gt;5" 0 1 |&gt; toExpression
+
+let x24 = Variable.real "2-&gt;4" 0 1 |&gt; toExpression
+let x25 = Variable.real "2-&gt;5" 0 3 |&gt; toExpression
+let x26 = Variable.real "2-&gt;6" 0 1 |&gt; toExpression
+
+let x35 = Variable.real "3-&gt;5" 0 1 |&gt; toExpression
+
+let x47 = Variable.real "4-&gt;7" 0 4 |&gt; toExpression
+
+let x57 = Variable.real "5-&gt;7" 0 2 |&gt; toExpression
+
+let x67 = Variable.real "6-&gt;7" 0 4 |&gt; toExpression
+
+let mdl =
+  Model.Default
+  |&gt; DecisionVars [x01; x02; x03; x14; x15; x24; x25; x26; x35; x47; x57; x67]
+  |&gt; Goal Maximize
+  |&gt; Objective (x01 + x02 + x03)
+  |&gt; Constraints [
+        x01 + -1*x14 + -1*x15 === 0 // node 1
+        x02 + -1*x24 + -1*x25 + -1*x26 === 0 // node 2
+        x03 + -1*x35 === 0 // node 3
+        x14 + x24 + -1*x47 === 0 // node 4
+        x15 + x25 + x35 + -1*x57 === 0 // node 5
+        x26 + -1*x67 === 0 // node 6
+      ]
+
+let result = Solve mdl
+
+match result with
+| Solution sol -&gt;
+    printfn "Objective:%f" sol.Objective.toFloat
+    sol.Variables |&gt; Map.iter (fun k v -&gt; printfn "%s: %f" k v)
+| Error e -&gt;
+    printfn "%A" e</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Over the past few years, I have been increasingly fascinated with Operations Research and its applications: Economic models; Scheduling; Engineering &amp; Design; etcetera. Operations Research has provided a wealth of good to society as a whole. This library is a general resource for using the F# Operations Research module. Hope you have fun with it.</p>
+<p><strong>OUTPUT:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">Objective:6.000000
+0-&gt;1: 3.000000
+0-&gt;2: 2.000000
+0-&gt;3: 1.000000
+1-&gt;4: 3.000000
+1-&gt;5: 0.000000
+2-&gt;4: 1.000000
+2-&gt;5: 0.000000
+2-&gt;6: 1.000000
+3-&gt;5: 1.000000
+4-&gt;7: 4.000000
+5-&gt;7: 1.000000
+6-&gt;7: 1.000000</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_maximum_flow_google_graph">Maximum Flow (Google.Graph)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Another method to solve flow networks is with the API <code>Google.Graph</code>. We instantiate a MaxFlow object and add the arcs with their respective capacities. Then solve. Pretty easy.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-fsharp" data-lang="fsharp">let numNodes = 6;
+let numArcs = 9;
+let tails = [0; 0; 0; 0; 1; 2; 3; 3; 4]
+let heads = [1; 2; 3; 4; 3; 4; 4; 5; 5]
+let capacities = [5L; 8L; 5L; 3L; 4L; 5L; 6L; 6L; 4L]
+let expectedFlows = [4; 4; 2; 0; 4; 4; 0; 6; 4]
+let expectedTotalFlow = 10;
+let maxFlow = new MaxFlow()
+
+for i=0 to (numArcs-1) do
+  let arc = maxFlow.AddArcWithCapacity(tails.[i], heads.[i], capacities.[i])
+  if (arc &lt;&gt; i) then
+    failwith "Internal error"
+
+let source = 0;
+let sink = numNodes - 1;
+printfn "Solving max flow with %i nodes, and %i arcs, source=%i, sink=%i " numNodes numArcs source sink
+let solveStatus = maxFlow.Solve(source, sink)
+
+match solveStatus with
+| x when x = MaxFlow.Status.OPTIMAL -&gt;
+    let totalFlow = maxFlow.OptimalFlow();
+    printfn "total computed flow %i, expected = %i" totalFlow expectedTotalFlow
+
+    for i=1 to numArcs do
+      printfn "Arc %i (%i -&gt; %i), capacity=%i, computed=%i, expected=%i" i (maxFlow.Head(i-1)) (maxFlow.Tail(i-1)) (maxFlow.Capacity(i-1)) (maxFlow.Flow(i-1)) (expectedFlows.[i-1])
+| _ -&gt;
+  printfn "Solving the max flow problem failed. Solver status: %s" (solveStatus.ToString("g"))</code></pre>
+</div>
 </div>
 <div class="paragraph">
-<p><a href="getting_started.html">Getting Started</a><br>
-<a href="linear.html">Linear Programming</a><br>
-<a href="graph.html">Networks &amp; Graphs</a><br>
-<a href="constraint.html">Constraint Programming</a><br>
-<a href="knapsack.html">Knapsack Problem</a><br>
-<a href="routing_capacity_constraints.html">Routing with Capacity Constraints</a><br>
-<a href="resources.html">Tools &amp; Resources</a></p>
+<p><strong>OUTPUT:</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-text" data-lang="text">Solving max flow with 6 nodes, and 9 arcs, source=0, sink=5
+total computed flow 10, expected = 10
+Arc 1 (1 -&gt; 0), capacity=5, computed=4, expected=4
+Arc 2 (2 -&gt; 0), capacity=8, computed=4, expected=4
+Arc 3 (3 -&gt; 0), capacity=5, computed=2, expected=2
+Arc 4 (4 -&gt; 0), capacity=3, computed=0, expected=0
+Arc 5 (3 -&gt; 1), capacity=4, computed=4, expected=4
+Arc 6 (4 -&gt; 2), capacity=5, computed=4, expected=4
+Arc 7 (4 -&gt; 3), capacity=6, computed=0, expected=0
+Arc 8 (5 -&gt; 3), capacity=6, computed=6, expected=6
+Arc 9 (5 -&gt; 4), capacity=4, computed=4, expected=4</code></pre>
 </div>
 </div>
+</div>
+</div>
+</div>
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  messageStyle: "none",
+  tex2jax: {
+    inlineMath: [["\\(", "\\)"]],
+    displayMath: [["\\[", "\\]"]],
+    ignoreClass: "nostem|nolatexmath"
+  },
+  asciimath2jax: {
+    delimiters: [["\\$", "\\$"]],
+    ignoreClass: "nostem|noasciimath"
+  },
+  TeX: { equationNumbers: { autoNumber: "none" } }
+})
+MathJax.Hub.Register.StartupHook("AsciiMath Jax Ready", function () {
+  MathJax.InputJax.AsciiMath.postfilterHooks.Add(function (data, node) {
+    if ((node = data.script.parentNode) && (node = node.parentNode) && node.classList.contains('stemblock')) {
+      data.math.root.display = "block"
+    }
+    return data
+  })
+})
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_HTMLorMML"></script>
 </body>
 </html>
