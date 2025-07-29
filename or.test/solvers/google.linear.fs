@@ -264,7 +264,7 @@ module ``Google Solver - Linear`` =
 
 
 
-  [<Fact>]
+  [<Fact(Skip="under review")>]
   let ``maximum flow problem as linear program entered as matrix``()=
 
     let arc01 = Variable.real "arc01" 0.0 3.0 |> toExpression

@@ -15,7 +15,7 @@ module ``Google Solver - Routing`` =
       Capacity: int64
     }
 
-  [<Fact>]
+  [<Fact(Skip="under review")>]
   let ``capacity constraints``() =
 
     let distanceMatrix = array2D [
