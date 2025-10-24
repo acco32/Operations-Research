@@ -7,8 +7,6 @@
     <Version></Version>
   </PropertyGroup>
 
-  <Import Project="nuget.props" />
-
   <ItemGroup>
     <Compile Include="types.fs" />
     <Compile Include="library.fs" />

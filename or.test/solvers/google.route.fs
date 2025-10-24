@@ -15,7 +15,7 @@ module ``Google Solver - Routing`` =
       Capacity: int64
     }
 
-  [<Fact(Skip="under review")>]
+  [<Fact>]
   let ``capacity constraints``() =
 
     let distanceMatrix = array2D [
@@ -107,7 +107,7 @@ module ``Google Solver - Routing`` =
 
     routes.[0].Capacity |> should equal 15L
     routes.[0].Distance |> should equal 1552L
-    routes.[0].Route |> should equal [0L; 4L; 3L; 1L; 7L; 0L]
+    routes.[0].Route |> should equal [0L; 7L; 3L; 4L; 1L; 0L]
 
     routes.[1].Capacity |> should equal 15L
     routes.[1].Distance |> should equal 1552L

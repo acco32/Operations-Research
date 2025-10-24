@@ -1,27 +1,26 @@
 ### Description
 
-Please provide a succinct description of your issue.
+Provide a clear description of the issue.
 
-### Repro steps
-
-Please provide the steps required to reproduce the problem
+### Steps to Reproduce
 
 1. Step A
 2. Step B
 
-### Expected behaviour
+### Expected Behaviour
 
-Please provide a description of the behaviour you expect.
+Describe what you expected to happen.
 
-### Actual behaviour
+### Actual Behaviour
 
-Please provide a description of the actual behaviour observed. 
+Describe what actually happened.
 
-### Known workarounds
+### Environment
 
-Please provide a description of any known workarounds.
+* Operating System:
+* .NET Version:
+* Library Version:
 
-### Related information 
+### Additional Context
 
-* Operating system
-* .NET Runtime, CoreCLR or Mono Version
+Any workarounds, related issues, or other relevant information.

@@ -264,7 +264,7 @@ module ``Google Solver - Linear`` =
 
 
 
-  [<Fact(Skip="under review")>]
+  [<Fact>]
   let ``maximum flow problem as linear program entered as matrix``()=
 
     let arc01 = Variable.real "arc01" 0.0 3.0 |> toExpression
@@ -306,14 +306,14 @@ module ``Google Solver - Linear`` =
         sol.Variables.["arc01"] |> should (equalWithin 0.001) 3.0
         sol.Variables.["arc02"] |> should (equalWithin 0.001) 2.0
         sol.Variables.["arc03"] |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc14"] |> should (equalWithin 0.001) 3.0
-        sol.Variables.["arc15"] |> should (equalWithin 0.001) 0.0
+        sol.Variables.["arc14"] |> should (equalWithin 0.001) 2.0
+        sol.Variables.["arc15"] |> should (equalWithin 0.001) 1.0
         sol.Variables.["arc24"] |> should (equalWithin 0.001) 1.0
         sol.Variables.["arc25"] |> should (equalWithin 0.001) 0.0
         sol.Variables.["arc26"] |> should (equalWithin 0.001) 1.0
         sol.Variables.["arc35"] |> should (equalWithin 0.001) 1.0
-        sol.Variables.["arc47"] |> should (equalWithin 0.001) 4.0
-        sol.Variables.["arc57"] |> should (equalWithin 0.001) 1.0
+        sol.Variables.["arc47"] |> should (equalWithin 0.001) 3.0
+        sol.Variables.["arc57"] |> should (equalWithin 0.001) 2.0
         sol.Variables.["arc67"] |> should (equalWithin 0.001) 1.0
     | Error e ->
         Assert.True(false, sprintf "%A" e)

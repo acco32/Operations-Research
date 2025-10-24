@@ -66,7 +66,7 @@ module Constraint =
 
       model.Add(cons) |> ignore)
 
-    let solver = CpSolver()
+    let solver = new CpSolver()
 
     solver.StringParameters <-
       List.empty

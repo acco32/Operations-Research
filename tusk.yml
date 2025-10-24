@@ -1,12 +1,12 @@
 tasks:
+  install-tools:
+    usage: Install or update tusk task runner
+    run:
+      - dotnet fsi tools/install-task-runner.fsx
   build:
     usage: Build the application
     run:
       - dotnet build /nowarn:FS0025
-  docs:
-    usage: Build the docs
-    run:
-      - asciidoctor web/*.adoc -D docs
   test:
     usage: Run unit tests for entire repository
     run:
@@ -22,16 +22,13 @@ tasks:
         usage: version of application
         environment: RELEASE_VERSION
         default: "0.0.0"
+      runtime:
+        usage: target runtime (e.g., linux-x64, win-x64, osx-x64, osx-arm64)
+        environment: TARGET_RUNTIME
+        default: "linux-x64"
     run:
-      - echo $(git log -n 1 --format=%H) > VERSION
-      - echo ${version} >> VERSION
-      - dotnet build -c Release /property:Version=${version} or
-      - dotnet pack -c Release /property:Version=${version} or
-  publish:
-    usage: Upload the build package to nuget server
-    options:
-      apiKey:
-        usage: the nuget server API key
-        default: ''
-    run:
-      - dotnet nuget push --source 'https://nuget.org' --api-key ${apiKey} packages/*.nupkg
+      - printf '%s\n' "$(git log -n 1 --format=%H)" > VERSION
+      - printf '%s\n' "${version}" >> VERSION
+      - dotnet publish or -c Release -r ${runtime} --self-contained false /property:Version=${version}
+      - cd or/bin/Release/net8.0/${runtime}/publish && cp ../../../../../../VERSION . && tar -czf ../../../../../../operations-research-${version}-${runtime}.tar.gz *.dll VERSION
+      - printf 'Archive contents:\n' && tar -tzf operations-research-${version}-${runtime}.tar.gz

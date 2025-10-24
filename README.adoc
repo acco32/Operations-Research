@@ -1,18 +1,14 @@
 = F#OR (Operations Research with F#)
-
-image::https://github.com/acco32/Operations-Research/workflows/Operations%20Research/badge.svg?branch=master[Operations Research]
 image::https://img.shields.io/badge/licence-MIT-blue.svg[LICENCE]
 
 Library to solve operations research problems in F#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. Currently the only solver used is https://developers.google.com/optimization[Google's OrTools].
 
 == Solver Types
-
 * Linear Programming (Google MIP/LP)
 * Constraint Programming (Google CP-SAT)
 * Routing (Google Route API)
 
 == Example
-
 [source,fsharp]
 -----
 open System
@@ -22,7 +18,6 @@ open Operations.Research.Solvers.Google.Linear
 
 let x = Variable.real "x" 0.0 Double.PositiveInfinity |> toExpression
 let y = Variable.real "y" 0.0 Double.PositiveInfinity |> toExpression
-
 
 let mdl =
   Model.Default
@@ -46,12 +41,103 @@ match result with
     printfn "%A" e
 -----
 
+== Installation
 
-== Install necessary tools
+Download the latest release for your platform from the https://github.com/acco32/Operations-Research/releases[Releases page]:
 
-Run the script to `install-task-runner.sh` to install https://github.com/rliebz/tusk[tusk]. This will install the tool nessary for building the application. Then run the tool to view the task options.
+* `operations-research-{version}-linux-x64.tar.gz` - Linux (x64)
+* `operations-research-{version}-win-x64.tar.gz` - Windows (x64)
+* `operations-research-{version}-osx-x64.tar.gz` - macOS (Intel)
+* `operations-research-{version}-osx-arm64.tar.gz` - macOS (Apple Silicon)
 
-[source, bash]
+Extract the archive:
+
+[source,bash]
+----
+tar -xzf operations-research-0.1.0-linux-x64.tar.gz -C ~/lib/operations-research
+----
+
+=== Using in F# Interactive (FSI)
+
+Reference the DLLs in your `.fsx` scripts:
+
+[source,fsharp]
+----
+#r "nuget: Google.OrTools"
+#r "/home/user/lib/operations-research/Operations.Research.dll"
+
+open Operations.Research.Types
+open Operations.Research.Models
+// ... your code
+----
+
+=== Using in F# Projects
+
+Add a reference in your `.fsproj`:
+
+[source,xml]
+----
+<ItemGroup>
+  <PackageReference Include="Google.OrTools" Version="9.*" />
+  <Reference Include="/home/user/lib/operations-research/Operations.Research.dll" />
+</ItemGroup>
+----
+
+Or use `dotnet add reference` with a path to the DLL.
+
+== Development
+
+=== Prerequisites
+* .NET 8.0 SDK
+* https://github.com/rliebz/tusk[Tusk] task runner
+
+=== Setup
+
+Install the task runner:
+[source,bash]
+----
+dotnet fsi tools/install-task-runner.fsx
+----
+
+Or use the tusk task (once tusk is installed):
+[source,bash]
+----
+./tools/tusk install-tools
+----
+
+View available tasks:
+[source,bash]
 ----
 ./tools/tusk
 ----
+
+=== Building
+
+Build the project:
+[source,bash]
+----
+./tools/tusk build
+----
+
+Run tests:
+[source,bash]
+----
+./tools/tusk test
+----
+
+=== Creating Releases
+
+Build a release for a specific platform:
+[source,bash]
+----
+./tools/tusk release -version=1.0.0 -runtime=linux-x64
+----
+
+Releases are automatically built and published to GitHub when you push a version tag:
+[source,bash]
+----
+git tag v1.0.0
+git push origin v1.0.0
+----
+
+This creates platform-specific archives for download.

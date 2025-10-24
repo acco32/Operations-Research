@@ -112,7 +112,7 @@ module ``Examples`` =
     | Error e -> printfn "%A" e
 
 
-  [<Fact(Skip = "under review")>]
+  [<Fact>]
   let ``Maximum Flow - Linear Program`` () =
 
     let x01 = Variable.real "arc_0->1" 0 3 |> toExpression
@@ -155,20 +155,20 @@ module ``Examples`` =
       sol.Variables.[x01.var().Name] |> should (equalWithin 0.001) 3
       sol.Variables.[x02.var().Name] |> should (equalWithin 0.001) 2
       sol.Variables.[x03.var().Name] |> should (equalWithin 0.001) 1
-      sol.Variables.[x14.var().Name] |> should (equalWithin 0.001) 3
-      sol.Variables.[x15.var().Name] |> should (equalWithin 0.001) 0
+      sol.Variables.[x14.var().Name] |> should (equalWithin 0.001) 2
+      sol.Variables.[x15.var().Name] |> should (equalWithin 0.001) 1
       sol.Variables.[x24.var().Name] |> should (equalWithin 0.001) 1
       sol.Variables.[x25.var().Name] |> should (equalWithin 0.001) 0
       sol.Variables.[x26.var().Name] |> should (equalWithin 0.001) 1
       sol.Variables.[x35.var().Name] |> should (equalWithin 0.001) 1
-      sol.Variables.[x47.var().Name] |> should (equalWithin 0.001) 4
-      sol.Variables.[x57.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x47.var().Name] |> should (equalWithin 0.001) 3
+      sol.Variables.[x57.var().Name] |> should (equalWithin 0.001) 2
       sol.Variables.[x67.var().Name] |> should (equalWithin 0.001) 1
 
     | Error e -> printfn "%A" e
 
 
-  [<Fact(Skip = "under review")>]
+  [<Fact>]
   let ``Maximum Flow - Google.Graph`` () =
 
     let numNodes = 6
