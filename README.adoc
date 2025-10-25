@@ -43,47 +43,7 @@ match result with
 
 == Installation
 
-Download the latest release for your platform from the https://github.com/acco32/Operations-Research/releases[Releases page]:
-
-* `operations-research-{version}-linux-x64.tar.gz` - Linux (x64)
-* `operations-research-{version}-win-x64.tar.gz` - Windows (x64)
-* `operations-research-{version}-osx-x64.tar.gz` - macOS (Intel)
-* `operations-research-{version}-osx-arm64.tar.gz` - macOS (Apple Silicon)
-
-Extract the archive:
-
-[source,bash]
-----
-tar -xzf operations-research-0.1.0-linux-x64.tar.gz -C ~/lib/operations-research
-----
-
-=== Using in F# Interactive (FSI)
-
-Reference the DLLs in your `.fsx` scripts:
-
-[source,fsharp]
-----
-#r "nuget: Google.OrTools"
-#r "/home/user/lib/operations-research/Operations.Research.dll"
-
-open Operations.Research.Types
-open Operations.Research.Models
-// ... your code
-----
-
-=== Using in F# Projects
-
-Add a reference in your `.fsproj`:
-
-[source,xml]
-----
-<ItemGroup>
-  <PackageReference Include="Google.OrTools" Version="9.*" />
-  <Reference Include="/home/user/lib/operations-research/Operations.Research.dll" />
-</ItemGroup>
-----
-
-Or use `dotnet add reference` with a path to the DLL.
+Download the latest release for your platform from the https://github.com/acco32/Operations-Research/releases[Releases page]. Each release includes an `INSTALL.adoc` file with detailed installation instructions.
 
 == Development
 

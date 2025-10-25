@@ -1,0 +1,54 @@
+F#OR Installation Guide
+========================
+
+DOWNLOAD
+--------
+This archive contains the F#OR library for your platform. For other platforms 
+or the latest version, visit:
+https://github.com/acco32/Operations-Research/releases
+
+
+EXTRACT
+-------
+Extract the archive to your preferred location:
+
+  tar -xzf operations-research-{version}-{platform}.tar.gz -C ~/lib/operations-research
+
+
+USING IN F# INTERACTIVE (FSI)
+------------------------------
+Reference the DLLs in your .fsx scripts:
+
+  #r "nuget: Google.OrTools"
+  #r "/home/user/lib/operations-research/Operations.Research.dll"
+
+  open Operations.Research.Types
+  open Operations.Research.Models
+  // ... your code
+
+
+USING IN F# PROJECTS
+--------------------
+Add a reference in your .fsproj:
+
+  <ItemGroup>
+    <PackageReference Include="Google.OrTools" Version="9.*" />
+    <Reference Include="/home/user/lib/operations-research/Operations.Research.dll" />
+  </ItemGroup>
+
+Or use dotnet add reference with a path to the DLL:
+
+  dotnet add reference /home/user/lib/operations-research/Operations.Research.dll
+
+
+VERSION INFORMATION
+-------------------
+Check the VERSION file included in this archive for:
+- Git commit hash
+- Release version number
+
+
+SUPPORT
+-------
+For issues, examples, and documentation, visit:
+https://github.com/acco32/Operations-Research

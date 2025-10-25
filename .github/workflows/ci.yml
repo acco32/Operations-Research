@@ -83,4 +83,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           RELEASE_VERSION=$(git describe --abbrev=0 --tags)
-          gh release create $RELEASE_VERSION --title "Release $RELEASE_VERSION"--generate-notes artifacts/**/*.tar.gz
+          gh release create $RELEASE_VERSION \
+            --title "Release $RELEASE_VERSION" \
+            --draft \
+            --generate-notes \
+            artifacts/**/*.tar.gz
