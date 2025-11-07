@@ -167,6 +167,61 @@ module ``Examples`` =
 
     | Error e -> printfn "%A" e
 
+  [<Fact>]
+  let ``Maximum Flow - Linear Program - Range Operator`` () =
+
+    let x01 = Variable.real "arc_0->1" 0 3 |> toExpression
+    let x02 = Variable.real "arc_0->2" 0 2 |> toExpression
+    let x03 = Variable.real "arc_0->3" 0 2 |> toExpression
+
+    let x14 = Variable.real "arc_1->4" 0 5 |> toExpression
+    let x15 = Variable.real "arc_1->5" 0 1 |> toExpression
+
+    let x24 = Variable.real "arc_2->4" 0 1 |> toExpression
+    let x25 = Variable.real "arc_2->5" 0 3 |> toExpression
+    let x26 = Variable.real "arc_2->6" 0 1 |> toExpression
+
+    let x35 = Variable.real "arc_3->5" 0 1 |> toExpression
+
+    let x47 = Variable.real "arc_4->7" 0 4 |> toExpression
+
+    let x57 = Variable.real "arc_5->7" 0 2 |> toExpression
+
+    let x67 = Variable.real "arc_6->7" 0 4 |> toExpression
+
+    let mdl =
+      Model.Default
+      |> DecisionVars [ x01; x02; x03; x14; x15; x24; x25; x26; x35; x47; x57; x67 ]
+      |> Goal Maximize
+      |> Objective(x01 + x02 + x03)
+      |> Constraints
+        [ x01 + -1 * x14 + -1 * x15 <-> (-0.0001, 0.0001) // node 1
+          x02 + -1 * x24 + -1 * x25 + -1 * x26 <-> (-0.0001, 0.0001) // node 2
+          x03 + -1 * x35 <-> (-0.0001, 0.0001) // node 3
+          x14 + x24 + -1 * x47 <-> (-0.0001, 0.0001) // node 4
+          x15 + x25 + x35 + -1 * x57 <-> (-0.0001, 0.0001) // node 5
+          x26 + -1 * x67 <-> (-0.0001, 0.0001) ] // node 6
+
+    let result = Solve mdl
+
+    match result with
+    | Solution sol ->
+      sol.Objective.toInt |> should (equalWithin 0.001) 6
+      sol.Variables.[x01.var().Name] |> should (equalWithin 0.001) 3
+      sol.Variables.[x02.var().Name] |> should (equalWithin 0.001) 2
+      sol.Variables.[x03.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x14.var().Name] |> should (equalWithin 0.001) 2
+      sol.Variables.[x15.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x24.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x25.var().Name] |> should (equalWithin 0.001) 0
+      sol.Variables.[x26.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x35.var().Name] |> should (equalWithin 0.001) 1
+      sol.Variables.[x47.var().Name] |> should (equalWithin 0.001) 3
+      sol.Variables.[x57.var().Name] |> should (equalWithin 0.001) 2
+      sol.Variables.[x67.var().Name] |> should (equalWithin 0.001) 1
+
+    | Error e -> printfn "%A" e
+
 
   [<Fact>]
   let ``Maximum Flow - Google.Graph`` () =
