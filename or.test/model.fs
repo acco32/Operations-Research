@@ -10,34 +10,34 @@ module ``Models`` =
 
 
   [<Fact>]
-  let ``create model with decision variables``() =
+  let ``create model with decision variables`` () =
     let mdl = Model.Default
 
     let x = Variable.boolean "a" |> toExpression
     let y = Variable.boolean "b" |> toExpression
 
-    let newMdl = mdl |> DecisionVars [x; y]
+    let newMdl = mdl |> DecisionVars [ x; y ]
     newMdl.Variables |> should haveLength 2
 
   [<Fact>]
-  let ``create model with constraints``() =
+  let ``create model with constraints`` () =
     let mdl = Model.Default
 
     let x = Variable.real "a" 0.0 20.0 |> toExpression
     let y = Variable.real "b" -4.0 100.0 |> toExpression
-    let c1 = 1.0*x + (-3.4*y) <== 4.5
-    let c2 = 3.0*x + 4.9*y >== 50.0
-    let c3 = 1.0*x + 1.0*y + 6.0 === 5.0
+    let c1 = 1.0 * x + (-3.4 * y) <== 4.5
+    let c2 = 3.0 * x + 4.9 * y >== 50.0
+    let c3 = 1.0 * x + 1.0 * y + 6.0 === 5.0
 
     let newMdl = mdl |> Constraint c1 |> Constraint c2 |> Constraint c3
     newMdl.Constraints |> should haveLength 3
 
   [<Fact>]
-  let ``create model with objective function expression``() =
+  let ``create model with objective function expression`` () =
     let mdl = Model.Default
     let x = Variable.real "a" 0.0 20.0 |> toExpression
     let y = Variable.real "b" -4.0 100.0 |> toExpression
-    let obj = 1.0*x + 0.4*y
+    let obj = 1.0 * x + 0.4 * y
 
     let newMdl = mdl |> Objective obj
     newMdl.Objective.Value |> should be instanceOfType<Expression>
@@ -50,26 +50,106 @@ module ``Models`` =
     mdl.Constraints |> should haveLength 0
 
   [<Fact>]
-  let ``create constraint with less than or equal operator``()=
+  let ``create constraint with less than or equal operator`` () =
     let x = Variable.real "x" 0. 1. |> toExpression
-    let c = 1.0*x <== 2.0
+    let c = 1.0 * x <== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
-  let ``create constraint with greater than or equal operator``()=
+  let ``create constraint with greater than or equal operator`` () =
     let x = Variable.real "x" 0. 1. |> toExpression
-    let c = 1.0*x >== 2.0
+    let c = 1.0 * x >== 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
-  let ``create constraint with equal operator``()=
+  let ``create constraint with equal operator`` () =
     let x = Variable.real "x" 0. 1. |> toExpression
-    let c = 1.0*x === 2.0
+    let c = 1.0 * x === 2.0
     c |> should be instanceOfType<Constraint>
 
   [<Fact>]
-  let ``create constraint with not equal operator throws error if boundary value is not an integer``()=
+  let ``create constraint with not equal operator throws error if boundary value is not an integer`` () =
     let x = Variable.real "x" 0. 1. |> toExpression
-    Assert.Throws<Exception>( fun () ->
-        1*x =/= 2.0 |> ignore
-    )
+    Assert.Throws<Exception>(fun () -> 1 * x =/= 2.0 |> ignore)
+
+  [<Fact>]
+  let ``create constraint with range operator`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+    let y = Variable.real "y" 0. 1. |> toExpression
+
+    let c = 1.0 * x + y <-> (0, 2.0)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using integer bounds`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+    let y = Variable.real "y" 0. 1. |> toExpression
+
+    let c = 1.0 * x + y <-> (0, 2)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using float bounds`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+    let y = Variable.real "y" 0. 1. |> toExpression
+
+    let c = 1.0 * x + y <-> (0.5, 2.5)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using mixed bounds int lower float upper`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+
+    let c = x <-> (5, 10.5)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using mixed bounds float lower int upper`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+
+    let c = x <-> (5.5, 10)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using equal bounds`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+
+    let c = x <-> (5, 5)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator using negative bounds`` () =
+    let x = Variable.real "x" -10. 10. |> toExpression
+
+    let c = x <-> (-5, -2)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator should fail when lower exceeds upper`` () =
+    let x = Variable.real "x" 0. 1. |> toExpression
+
+    (fun () -> x <-> (10, 5) |> ignore) |> should throw typeof<System.Exception>
+
+
+  [<Fact>]
+  let ``create constraint with range operator for single variable`` () =
+    let x = Variable.integer "x" 0 10 |> toExpression
+
+    let c = x <-> (3, 7)
+    c |> should be instanceOfType<Constraint>
+
+
+  [<Fact>]
+  let ``create constraint with range operator loosening equality`` () =
+    let x = Variable.real "x" 0. 10. |> toExpression
+
+    // Loosen x === 5.0 to allow tolerance
+    let c = x <-> (4.9, 5.1)
+    c |> should be instanceOfType<Constraint>

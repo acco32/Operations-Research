@@ -4,7 +4,6 @@ module Constraint =
   open System
   open Google.OrTools.Sat
   open Operations.Research.Types
-  open Operations.Research.Models
 
 
   type SolverOptions =
@@ -83,32 +82,32 @@ module Constraint =
 
       let varMap = vars |> Map.map (fun _ v -> float (solver.Value(v)))
 
-      Solution(
+      Solution
         { Variables = varMap
           Objective = Number.Real(solver.Response.ObjectiveValue)
           Optimal = result.Equals(CpSolverStatus.Optimal) }
-      )
+
 
     | CpSolverStatus.Infeasible as err ->
-      Error(
+      Error
         { Code = int (err)
           Message = "Infeasible" }
-      )
+
     | CpSolverStatus.Unknown as err ->
-      Error(
+      Error
         { Code = int (err)
           Message = "Unknown" }
-      )
+
     | CpSolverStatus.ModelInvalid as err ->
-      Error(
+      Error
         { Code = int (err)
           Message = "Model Invalid" }
-      )
+
     | _ as err ->
-      Error(
+      Error
         { Code = int (err)
           Message = "Not Solved" }
-      )
+
 
   let Solve (mdl: Model) : SolverResult =
     SolveWithCustomOptions mdl SolverOptions.Default
