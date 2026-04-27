@@ -3,18 +3,28 @@ tasks:
     usage: Install or update tusk task runner
     run:
       - dotnet fsi tools/install-task-runner.fsx
+
   build:
     usage: Build the application
     run:
-      - dotnet build /nowarn:FS0025
-  test:
-    usage: Run unit tests for entire repository
-    run:
-      - dotnet test
+      - dotnet build
+
   clean:
     usage: Remove all build artifacts
     run:
       - dotnet clean
+      - dotnet restore --force-evaluate
+
+  test:
+    usage: Run tests
+    run:
+      - command:
+          exec: dotnet build -c Debug /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary -nologo
+          dir: ./or.test
+      - command:
+          exec: dotnet run
+          dir: ./or.test
+
   release:
     usage: Build a release version of application
     options:
@@ -30,5 +40,5 @@ tasks:
       - printf '%s\n' "$(git log -n 1 --format=%H)" > VERSION
       - printf '%s\n' "${version}" >> VERSION
       - dotnet publish or -c Release -r ${runtime} --self-contained false /property:Version=${version}
-      - cd or/bin/Release/net8.0/${runtime}/publish && cp ../../../../../../VERSION . && cp ../../../../../../INSTALL.txt . && tar -czf ../../../../../../operations-research-${version}-${runtime}.tar.gz *.dll VERSION INSTALL.txt
+      - cd or/bin/Release/net10.0/${runtime}/publish && cp ../../../../../../VERSION . && cp ../../../../../../INSTALL.txt . && tar -czf ../../../../../../operations-research-${version}-${runtime}.tar.gz *.dll VERSION INSTALL.txt
       - printf 'Archive contents:\n' && tar -tzf operations-research-${version}-${runtime}.tar.gz

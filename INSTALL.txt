@@ -3,8 +3,8 @@ F#OR Installation Guide
 
 DOWNLOAD
 --------
-This archive contains the F#OR library for your platform. For other platforms 
-or the latest version, visit:
+This archive contains the F#OR library for your platform. For other
+platforms or the latest version, visit:
 https://github.com/acco32/Operations-Research/releases
 
 
@@ -17,26 +17,35 @@ Extract the archive to your preferred location:
 
 USING IN F# INTERACTIVE (FSI)
 ------------------------------
-Reference the DLLs in your .fsx scripts:
+Reference the DLL in your .fsx scripts:
 
   #r "nuget: Google.OrTools"
   #r "/home/user/lib/operations-research/Operations.Research.dll"
 
   open Operations.Research.Types
   open Operations.Research.Models
-  // ... your code
+  open Operations.Research.Solvers.Google.Linear
+
+  let x = Variable.real "x" 0.0 10.0
+  let mdl =
+      Model.empty
+      |> DecisionVars [x]
+      |> Goal Maximize
+      |> Objective (1.0*x)
+  let sol = Solve mdl
+  printfn "x = %f" sol.Values.["x"]
 
 
 USING IN F# PROJECTS
 --------------------
-Add a reference in your .fsproj:
+Add references in your .fsproj:
 
   <ItemGroup>
     <PackageReference Include="Google.OrTools" Version="9.*" />
     <Reference Include="/home/user/lib/operations-research/Operations.Research.dll" />
   </ItemGroup>
 
-Or use dotnet add reference with a path to the DLL:
+Or use the CLI:
 
   dotnet add reference /home/user/lib/operations-research/Operations.Research.dll
 

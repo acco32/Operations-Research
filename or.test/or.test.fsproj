@@ -1,8 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <GenerateProgramFile>false</GenerateProgramFile>
     <AssemblyName>Operations.Research.Test</AssemblyName>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../or/or.fsproj">
@@ -20,9 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
-    <PackageReference Include="FsUnit.xUnit" Version="6.*" />
-    <PackageReference Include="xunit" Version="*" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="*" />
+    <Reference Include="../lib/TestTracks-1.2.0/TestTracks.dll" />
   </ItemGroup>
+  
 </Project>

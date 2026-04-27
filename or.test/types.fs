@@ -1,155 +1,126 @@
 namespace Operations.Research.Test
 
-module ``Basic Types`` =
+open System
+open TestTracks
+open Operations.Research.Types
 
-  open System
-  open Xunit
-  open FsUnit.Xunit
-  open Operations.Research.Types
+module BasicTypes =
 
+  let tests =
+    suite
+      "Basic Types"
+      [
 
-  [<Fact>]
-  let ``create boolean variable with default values``() =
-    let varName = "bool"
-    let v = Variable.boolean varName
+        test "create boolean variable" (fun () ->
+          let v = Variable.boolean "bool"
 
-    v.Value.toInt |> should equal 0
-    v.Value.toFloat |> should equal 0.0
-    v.Name |> should equal varName
-    Variable.state(v) |> should be False
+          assertEqual "bool" v.Name "name"
+          |> combine (assertEqual Boolean v.Kind "kind")
+          |> combine (assertEqual (Some 0.0) v.Lower "lower bound")
+          |> combine (assertEqual (Some 1.0) v.Upper "upper bound"))
 
-  [<Fact>]
-  let ``create number variable with default values``() =
-    let varName = "real"
-    let lb = -1.0
-    let ub = 2.0
+        test "create real variable with bounds" (fun () ->
+          let v = Variable.real "real" -1.0 2.0
 
-    let v = Variable.real varName lb ub
+          assertEqual "real" v.Name "name"
+          |> combine (assertEqual Real v.Kind "kind")
+          |> combine (assertEqual (Some -1.0) v.Lower "lower bound")
+          |> combine (assertEqual (Some 2.0) v.Upper "upper bound"))
 
-    v.Bounds.Lower.toFloat |> should equal lb
-    v.Bounds.Upper.toFloat |> should equal ub
+        test "create integer variable with bounds" (fun () ->
+          let v = Variable.integer "int" 0 10
 
-    v.Value.toFloat |> should equal Double.NegativeInfinity
-    v.Name |> should equal varName
+          assertEqual "int" v.Name "name"
+          |> combine (assertEqual Integer v.Kind "kind")
+          |> combine (assertEqual (Some 0.0) v.Lower "lower bound")
+          |> combine (assertEqual (Some 10.0) v.Upper "upper bound"))
 
-  [<Fact>]
-  let ``create boolean operand`` () =
-    let x = Variable.boolean "a" |> toExpression
-    let result = 1*x
-    result |> should be instanceOfType<Expression>
+        test "real variable with infinity bounds becomes unbounded" (fun () ->
+          let v = Variable.real "x" Double.NegativeInfinity Double.PositiveInfinity
 
-  [<Fact>]
-  let ``create number (integer) operand`` () =
-    let x = Variable.integer "a" 0 1 |> toExpression
-    let result = 1*x
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 1
+          assertEqual None v.Lower "lower should be None"
+          |> combine (assertEqual None v.Upper "upper should be None"))
 
+        test "realFree gives unbounded variable" (fun () ->
+          let v = Variable.realFree "x"
 
-  [<Fact>]
-  let ``create number--float--operand`` () =
-    let x = Variable.real "a" 0. 1. |> toExpression
-    let result = 1*x
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 1
+          assertEqual None v.Lower "lower"
+          |> combine (assertEqual None v.Upper "upper")
+          |> combine (assertEqual Real v.Kind "kind"))
 
+        test "integerFree gives unbounded variable" (fun () ->
+          let v = Variable.integerFree "x"
 
-  [<Fact>]
-  let ``add two--integer--variables and create an expression``() =
-    let x = Variable.integer "a" Int32.MinValue Int32.MaxValue |> toExpression
-    let y = Variable.integerDefault "b" |> toExpression
+          assertEqual None v.Lower "lower"
+          |> combine (assertEqual None v.Upper "upper")
+          |> combine (assertEqual Integer v.Kind "kind"))
 
-    let result = x + y
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 2
+        test "integer variable with Int32 sentinels becomes unbounded" (fun () ->
+          let v = Variable.integer "x" Int32.MinValue Int32.MaxValue
 
+          assertEqual None v.Lower "lower should be None"
+          |> combine (assertEqual None v.Upper "upper should be None"))
 
-  [<Fact>]
-  let ``add number variable--integer--and constant should create an expression``() =
-    let x = Variable.integerDefault "a" |> toExpression
+        test "scalar times variable creates expression with one term" (fun () ->
+          let x = Variable.real "a" 0.0 1.0
+          let result = 1 * x
 
-    let result = x + 77
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 2
+          assertEqual 1 result.Coefficients.Count "one coefficient"
+          |> combine (assertEqual 0.0 result.Constant "no constant")
+          |> combine (assertEqual 1.0 result.Coefficients.["a"] "coefficient is 1.0"))
 
+        test "add two variables creates expression with two terms" (fun () ->
+          let x = Variable.integerFree "a"
+          let y = Variable.integerFree "b"
+          let result = x + y
 
-  [<Fact>]
-  let ``add number variable--real--and constant should create an expression``() =
-    let x = Variable.realDefault "a" |> toExpression
+          assertEqual 2 result.Coefficients.Count "two coefficients"
+          |> combine (assertEqual 0.0 result.Constant "no constant"))
 
-    let result = x + 77.0
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 2
+        test "add variable and constant creates expression with constant" (fun () ->
+          let x = Variable.integerFree "a"
+          let result = x + 77
 
+          assertEqual 1 result.Coefficients.Count "one coefficient"
+          |> combine (assertEqual 77.0 result.Constant "constant is 77"))
 
-  [<Fact>]
-  let ``add number variable (real) and coefficient-variable (real) should create an expression``() =
-    let x = Variable.realDefault "a" |> toExpression
-    let y = Variable.realDefault "b" |> toExpression
+        test "add same variable twice combines coefficients" (fun () ->
+          let x = Variable.realFree "a"
+          let result = x + x
 
-    let result = x + 2*y
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 2
+          assertEqual 1 result.Coefficients.Count "should collapse to one term"
+          |> combine (assertEqual 2.0 result.Coefficients.["a"] "coefficient should be 2.0"))
 
+        test "subtract variable from itself zeroes the coefficient" (fun () ->
+          let x = Variable.realFree "a"
+          let result = x - x
 
-  [<Fact>]
-  let ``create a multi-variable expression from integer variables`` () =
-    let x = Variable.integer "a" 0 10 |> toExpression
-    let y = Variable.integer "b" 0 10 |> toExpression
-    let z = Variable.integer "c" 0 10 |> toExpression
+          assertEqual 0 result.Coefficients.Count "zero coefficients should be dropped"
+          |> combine (assertEqual 0.0 result.Constant "no constant"))
 
-    let result = x + 2*y + 5*z + 80
-    result |> should be instanceOfType<Expression>
-    result.Terms |> should haveLength 4
+        test "multi-variable expression preserves all terms and constant" (fun () ->
+          let x = Variable.integer "a" 0 10
+          let y = Variable.integer "b" 0 10
+          let z = Variable.integer "c" 0 10
+          let result = x + 2 * y + 5 * z + 80
 
+          assertEqual 3 result.Coefficients.Count "three coefficients"
+          |> combine (assertEqual 80.0 result.Constant "constant is 80")
+          |> combine (assertEqual 1.0 result.Coefficients.["a"] "a coefficient")
+          |> combine (assertEqual 2.0 result.Coefficients.["b"] "b coefficient")
+          |> combine (assertEqual 5.0 result.Coefficients.["c"] "c coefficient"))
 
-  [<Fact>]
-  let ``set number variable`` () =
-    let varName = "real"
-    let lb = -1.0
-    let ub = 2.0
-    let mutable v = Variable.real varName lb ub
+        test "evaluate expression at given variable values" (fun () ->
+          let x = Variable.integerFree "a"
+          let y = Variable.integerFree "b"
+          let expr = x + 2 * y + 10
+          let values = Map.ofList [ "a", 5.0; "b", 5.0 ]
+          let result = LinearExpression.evaluate values expr
+          assertEqual 25.0 result "5 + 2*5 + 10 = 25")
 
-    let newValue = 1.0
-    v.Value.toFloat |> should equal Double.NegativeInfinity
-    v <- v |> Variable.set newValue
-    v.Value.toFloat |> should equal newValue
-
-
-  [<Fact>]
-  let ``set number variable throws error if out of bounds`` () =
-    let varName = "real"
-    let lb = -1.0
-    let ub = 2.0
-    let v = Variable.real varName lb ub
-
-    let outOfBoundsValue = 9.0
-    shouldFail (fun () -> v |> Variable.set outOfBoundsValue |> should throw typeof<System.ArgumentOutOfRangeException> )
-
-  [<Fact>]
-  let ``set boolean variable throws error if set to number`` () =
-    let v = Variable.boolean "bool"
-
-    let invalidValue = 9.0
-    shouldFail (fun () -> v |> Variable.set invalidValue |> should throw typeof<System.ArgumentOutOfRangeException> )
-
-  [<Fact>]
-  let ``set number variable throws error if set to boolean`` () =
-    let v = Variable.integer "num" 0 1
-
-    let invalidValue = true
-    shouldFail (fun () -> v |> Variable.set invalidValue |> should throw typeof<System.ArgumentOutOfRangeException> )
-
-  [<Fact>]
-  let ``evaluate an expression with with all operand types``() =
-
-    let value = 5
-    let x = Variable.integerDefault "a" |> Variable.set value |> toExpression
-    let y = Variable.integerDefault "b" |> Variable.set value |> toExpression
-
-    let expression = x + 2*y + 10
-    let result = eval(expression)
-
-    result |> should be instanceOfType<Number>
-    result.toInt |> should equal 25
-
+        test "evaluate treats missing variables as zero" (fun () ->
+          let x = Variable.integerFree "a"
+          let y = Variable.integerFree "b"
+          let expr = x + 2 * y + 10
+          let result = LinearExpression.evaluate (Map.ofList [ "a", 5.0 ]) expr
+          assertEqual 15.0 result "5 + 2*0 + 10 = 15") ]

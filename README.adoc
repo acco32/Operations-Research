@@ -1,54 +1,105 @@
 = F#OR (Operations Research with F#)
 image::https://img.shields.io/badge/licence-MIT-blue.svg[LICENCE]
 
-Library to solve operations research problems in F#. You can specify your objective and constraints and then use one of the underlying solvers to get an answer. Currently the only solver used is https://developers.google.com/optimization[Google's OrTools].
+Library to solve operations research problems in F#. Build a model from
+plain types, hand it to a solver, get a solution back. Currently wraps
+https://developers.google.com/optimization[Google's OR-Tools] as the
+underlying solver.
 
-== Solver Types
-* Linear Programming (Google MIP/LP)
+== Capabilities
+
+* Linear and Mixed-Integer Programming (Google GLOP / CBC / SCIP via MPSolver)
 * Constraint Programming (Google CP-SAT)
-* Routing (Google Route API)
+
+Routing examples are provided as direct OR-Tools usage; the routing API
+is not currently wrapped by this library.
 
 == Example
 [source,fsharp]
------
+----
 open System
 open Operations.Research.Types
 open Operations.Research.Models
 open Operations.Research.Solvers.Google.Linear
 
-let x = Variable.real "x" 0.0 Double.PositiveInfinity |> toExpression
-let y = Variable.real "y" 0.0 Double.PositiveInfinity |> toExpression
+let x = Variable.real "x" 0.0 Double.PositiveInfinity
+let y = Variable.real "y" 0.0 Double.PositiveInfinity
 
 let mdl =
-  Model.Default
-  |> DecisionVars [x; y]
-  |> Goal Maximize
-  |> Objective  (6*x + 2*y + 77)
-  |> Constraints [
-    3*x + 1*y <== 48
-    3*x + 4*y <== 120
-    3*x + 1*y >== 36
-  ]
+    Model.empty
+    |> DecisionVars [x; y]
+    |> Goal Maximize
+    |> Objective (6.0*x + 2.0*y + 77.0)
+    |> Constraints [
+        3.0*x + 1.0*y <== 48.0
+        3.0*x + 4.0*y <== 120.0
+        3.0*x + 1.0*y >== 36.0
+    ]
 
-let result = SolveWithCustomOptions mdl SolverOptions.Default
+let sol = SolveWithCustomOptions mdl SolverOptions.Default
 
-match result with
-| Solution sol ->
-    printfn "Objective: %i" (sol.Objective.toInt)
-    printfn "%s: %i" "x" (sol.Variables.["x"])
-    printfn "%s: %i" "y" (sol.Variables.["y"])
-| Error e ->
-    printfn "%A" e
------
+match sol.Status with
+| Optimal ->
+    printfn "Objective: %f" sol.Objective.Value
+    printfn "x: %f" sol.Values.["x"]
+    printfn "y: %f" sol.Values.["y"]
+| status ->
+    printfn "Solver did not reach optimal: %A" status
+----
+
+== Modelling
+
+Variables come in three kinds:
+
+[source,fsharp]
+----
+let a = Variable.boolean "a"               // domain {0, 1}
+let b = Variable.integer "b" 0 100         // bounded integer
+let c = Variable.integerFree "c"           // unbounded integer
+let d = Variable.real    "d" 0.0 10.0      // bounded real
+let e = Variable.realFree "e"              // unbounded real
+----
+
+Linear expressions compose via overloaded operators (`+`, `-`, `*`).
+Constraints use comparison operators that produce `Constraint` values:
+
+[source,fsharp]
+----
+let c1 = 1.0*x + 2.0*y <== 10.0      // less than or equal
+let c2 = 1.0*x        >== 0.0        // greater than or equal
+let c3 = 1.0*x + 1.0*y === 5.0       // equal
+let c4 = 1.0*x =/= 4.0               // not equal (CP solver only)
+let c5 = 1.0*x <-> (2.0, 8.0)        // bounded range
+----
+
+== Solver Selection
+
+[source,fsharp]
+----
+// Linear / MIP
+open Operations.Research.Solvers.Google.Linear
+let sol = Solve mdl
+
+// CP-SAT (integer-only domains, supports =/=)
+open Operations.Research.Solvers.Google.Constraint
+let sol = Solve mdl
+----
+
+Both solvers return `Solution { Status; Objective; Values }`. Inspect
+`Status` (`Optimal`, `Feasible`, `Infeasible`, `Unbounded`, `NotSolved`)
+before reading values.
 
 == Installation
 
-Download the latest release for your platform from the https://github.com/acco32/Operations-Research/releases[Releases page]. Each release includes an `INSTALL.adoc` file with detailed installation instructions.
+Download the latest release for your platform from the
+https://github.com/acco32/Operations-Research/releases[Releases page].
+Each release includes an `INSTALL.txt` file with detailed installation
+instructions.
 
 == Development
 
 === Prerequisites
-* .NET 8.0 SDK
+* dotnet 10+
 * https://github.com/rliebz/tusk[Tusk] task runner
 
 === Setup
@@ -93,7 +144,8 @@ Build a release for a specific platform:
 ./tools/tusk release -version=1.0.0 -runtime=linux-x64
 ----
 
-Releases are automatically built and published to GitHub when you push a version tag:
+Releases are automatically built and published to GitHub when you push a
+version tag:
 [source,bash]
 ----
 git tag v1.0.0

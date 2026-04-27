@@ -1,214 +1,143 @@
 namespace Operations.Research.Solvers.Google
 
+open System
+open Operations.Research.Types
+
 module Linear =
 
-  open Operations.Research.Types
-  open Google.OrTools.LinearSolver
+  // Aliases to disambiguate from name collisions with Google.OrTools.LinearSolver
+  type private OrSolver = Google.OrTools.LinearSolver.Solver
+  type private OrSolverVar = Google.OrTools.LinearSolver.Variable
+  type private OrStatus = Google.OrTools.LinearSolver.Solver.ResultStatus
 
-
-  type SolverStrategy = { Name: string; Id: int }
 
   module LinearSolverStrategy =
-    /// Coin-Or (Recommended default)
-    let CLP =
-      { Name = "CLP_LINEAR_PROGRAMMING"
-        Id = 0 }
-
-    /// GNU Linear Programming Kit
-    let GLPK =
-      { Name = "GLPK_LINEAR_PROGRAMMING"
-        Id = 1 }
-
-    /// Google Linear Optimization
-    let GLOP =
-      { Name = "GLOP_LINEAR_PROGRAMMING"
-        Id = 2 }
-
-    /// Gurobi Optimizer
-    let GUROBI =
-      { Name = "GUROBI_LINEAR_PROGRAMMING"
-        Id = 6 }
-
-    /// IBM CPLEX
-    let CPLEX =
-      { Name = "CPLEX_LINEAR_PROGRAMMING"
-        Id = 10 }
+    let GLOP = "GLOP"
+    let CLP = "CLP"
 
   module IntegerSolverStrategy =
-    /// Solving Constraint Integer Programs (Recommended default)
-    let SCIP =
-      { Name = "SCIP_MIXED_INTEGER_PROGRAMMING"
-        Id = 3 }
+    let CBC = "CBC"
+    let SCIP = "SCIP"
+    let GLPK = "GLPK"
 
-    /// GNU Linear Programming Kit
-    let GLPK =
-      { Name = "GLPK_MIXED_INTEGER_PROGRAMMING"
-        Id = 4 }
-
-    /// Coin-Or Branch and Cut
-    let CBC =
-      { Name = "CBC_MIXED_INTEGER_PROGRAMMING"
-        Id = 5 }
-
-    /// Gurobi Optimizer
-    let GUROBI =
-      { Name = "GUROBI_MIXED_INTEGER_PROGRAMMING"
-        Id = 7 }
-
-    /// IBM CPLEX
-    let CPLEX =
-      { Name = "CPLEX_MIXED_INTEGER_PROGRAMMING"
-        Id = 11 }
-
-    /// Binary Optimizer
-    let BOP =
-      { Name = "BOP_INTEGER_PROGRAMMING"
-        Id = 12 }
 
   type SolverOptions =
-    {
-      /// Time limit for solver to run. Unit is seconds.
-      TimeLimit: int
-      /// Solver strategy to pass to solver. Can be of type LinearSolverStrategy or IntegerSolverStrategy
-      Strategy: SolverStrategy
-    }
+    { Strategy: string
+      TimeLimit: int } // milliseconds; 0 = no limit
 
-    /// Default options to pass to solver
-    static member Default =
-      { TimeLimit = 30
-        Strategy = LinearSolverStrategy.GLOP }
+    static member Default: SolverOptions =
+      { Strategy = LinearSolverStrategy.GLOP
+        TimeLimit = 0 }
 
-  let SolveWithCustomOptions (mdl: Model) (opts: SolverOptions) : SolverResult =
 
-    let solver = Solver.CreateSolver(opts.Strategy.Name)
+  let private mapStatus (s: OrStatus) : Status =
+    match s with
+    | OrStatus.OPTIMAL -> Optimal
+    | OrStatus.FEASIBLE -> Feasible
+    | OrStatus.INFEASIBLE -> Infeasible
+    | OrStatus.UNBOUNDED -> Unbounded
+    | _ -> NotSolved
 
-    let (|IntegerStrategy|LinearStrategy|) strtgy =
-      if strtgy = IntegerSolverStrategy.BOP then
-        IntegerStrategy
-      elif strtgy = IntegerSolverStrategy.SCIP then
-        IntegerStrategy
-      elif strtgy = IntegerSolverStrategy.GLPK then
-        IntegerStrategy
-      elif strtgy = IntegerSolverStrategy.GUROBI then
-        IntegerStrategy
-      elif strtgy = IntegerSolverStrategy.CBC then
-        IntegerStrategy
-      elif strtgy = IntegerSolverStrategy.CPLEX then
-        IntegerStrategy
-      elif strtgy = LinearSolverStrategy.CPLEX then
-        LinearStrategy
-      elif strtgy = LinearSolverStrategy.GUROBI then
-        LinearStrategy
-      elif strtgy = LinearSolverStrategy.GLOP then
-        LinearStrategy
-      elif strtgy = LinearSolverStrategy.GLPK then
-        LinearStrategy
-      elif strtgy = LinearSolverStrategy.CLP then
-        LinearStrategy
-      else
-        failwith "Unknown strategy in solver parameters"
+  let private lo (v: float option) : float =
+    v |> Option.defaultValue Double.NegativeInfinity
 
-    let mutable vars = List.Empty
+  let private hi (v: float option) : float =
+    v |> Option.defaultValue Double.PositiveInfinity
 
-    let vars =
+  let private buildVariable (solver: OrSolver) (v: Variable) : OrSolverVar =
+    match v.Kind with
+    | Boolean -> solver.MakeBoolVar(v.Name)
+    | Integer -> solver.MakeIntVar(lo v.Lower, hi v.Upper, v.Name)
+    | Real -> solver.MakeNumVar(lo v.Lower, hi v.Upper, v.Name)
+
+  let private requireVar (lookup: Map<string, OrSolverVar>) (name: string) : OrSolverVar =
+    match Map.tryFind name lookup with
+    | Some sv -> sv
+    | None -> failwithf "Solver references unknown variable: %s" name
+
+  let private addConstraint (solver: OrSolver) (lookup: Map<string, OrSolverVar>) (con: Constraint) =
+    match con.Kind with
+    | NotEqual _ -> failwith "Linear solver does not support NotEqual constraints. Use the constraint solver instead."
+    | Range(lower, upper) ->
+      // Move the expression's constant into the bounds:
+      // (sum c_i x_i) + k in [lower, upper]  <=>  (sum c_i x_i) in [lower - k, upper - k]
+      let k = con.Expression.Constant
+      let cLo = (lo lower) - k
+      let cHi = (hi upper) - k
+      let name = con.Name |> Option.defaultValue ""
+      let c = solver.MakeConstraint(cLo, cHi, name)
+
+      con.Expression.Coefficients
+      |> Map.iter (fun n coeff -> c.SetCoefficient(requireVar lookup n, coeff))
+
+  let private setObjective (solver: OrSolver) (lookup: Map<string, OrSolverVar>) (goal: Goal) (expr: LinearExpression) =
+    let obj = solver.Objective()
+
+    expr.Coefficients
+    |> Map.iter (fun n coeff -> obj.SetCoefficient(requireVar lookup n, coeff))
+
+    obj.SetOffset(expr.Constant)
+
+    match goal with
+    | Maximize -> obj.SetMaximization()
+    | Minimize -> obj.SetMinimization()
+
+  let private extractSolution
+    (status: Status)
+    (varNames: string list)
+    (built: Map<string, OrSolverVar>)
+    (mdl: Model)
+    (solver: OrSolver)
+    : Solution =
+    match status with
+    | Optimal
+    | Feasible ->
+      let values =
+        varNames
+        |> List.map (fun n -> n, (Map.find n built).SolutionValue())
+        |> Map.ofList
+
+      let objective =
+        match mdl.Objective with
+        | Some _ -> Some(solver.Objective().Value())
+        | None -> None
+
+      { Status = status
+        Objective = objective
+        Values = values }
+    | _ ->
+      { Status = status
+        Objective = None
+        Values = Map.empty }
+
+
+  let SolveWithCustomOptions (mdl: Model) (opts: SolverOptions) : Solution =
+    let solver = OrSolver.CreateSolver(opts.Strategy)
+
+    if isNull solver then
+      failwithf "Could not create solver with strategy: %s" opts.Strategy
+
+    if opts.TimeLimit > 0 then
+      solver.SetTimeLimit(int64 opts.TimeLimit)
+
+    // Build variables, indexed by name
+    let built =
       mdl.Variables
-      |> List.map (fun (e: Expression) ->
-        let term = e.var ()
+      |> List.map (fun v -> v.Name, buildVariable solver v)
+      |> Map.ofList
 
-        match term.IsBoolean with
-        | true -> solver.MakeBoolVar(term.Name)
-        | false -> solver.MakeNumVar(term.Bounds.Lower.toFloat, term.Bounds.Upper.toFloat, term.Name))
+    // Objective (only when both expression and goal are provided)
+    match mdl.Objective, mdl.Goal with
+    | Some expr, Some goal -> setObjective solver built goal expr
+    | _ -> ()
 
+    // Constraints
+    mdl.Constraints |> List.iter (addConstraint solver built)
 
-    mdl.Constraints
-    |> List.iter (fun (cnsrnt: Operations.Research.Types.Constraint) ->
+    // Solve and extract
+    let status = mapStatus (solver.Solve())
+    let varNames = mdl.Variables |> List.map (fun v -> v.Name)
+    extractSolution status varNames built mdl solver
 
-      let (Operations.Research.Types.Constraint(expr, bnds)) = cnsrnt
-
-      match bnds.Interval with
-      | Include ->
-        let con = solver.MakeConstraint(bnds.Lower.toFloat, bnds.Upper.toFloat)
-
-        expr.Terms
-        |> List.iter (fun trm ->
-
-          match isNull (solver.LookupVariableOrNull(trm.Name)) with
-          | true ->
-            con.SetCoefficient(solver.MakeNumVar(trm.Bounds.Lower.toFloat, trm.Bounds.Upper.toFloat, trm.Name), 1.0)
-          | false -> con.SetCoefficient(solver.LookupVariableOrNull(trm.Name), trm.Coefficient.toFloat))
-
-      | Exclude -> failwithf "Constraint not valid for this type of strategy: %s" opts.Strategy.Name
-
-    )
-
-
-    let objective = solver.Objective()
-
-    match mdl.Objective with
-    | Some(expr) ->
-      expr.Terms
-      |> List.iter (fun trm ->
-
-        match isNull (solver.LookupVariableOrNull(trm.Name)) with
-        | true ->
-          objective.SetCoefficient(
-            solver.MakeNumVar(trm.Bounds.Lower.toFloat, trm.Bounds.Upper.toFloat, trm.Name),
-            1.0
-          )
-        | false -> objective.SetCoefficient(solver.LookupVariableOrNull(trm.Name), trm.Coefficient.toFloat)
-
-      )
-    | None -> failwith "Objective Function cannot be empty for Linear Solver"
-
-
-    match mdl.Goal with
-    | Maximize -> objective.SetMaximization()
-    | Minimize -> objective.SetMinimization()
-    | _ -> failwith "Goal cannot be unset"
-
-    let result = solver.Solve()
-
-    match result with
-    | Solver.ResultStatus.OPTIMAL
-    | Solver.ResultStatus.FEASIBLE ->
-
-      let varMap =
-        List.fold (fun (m: Map<string, float>) (v: Variable) -> m.Add(v.Name(), v.SolutionValue())) Map.empty vars
-
-      match opts.Strategy with
-      | LinearStrategy ->
-        Solution
-          { Variables = varMap
-            Objective = Number.Real(solver.Objective().Value())
-            Optimal = result.Equals Solver.ResultStatus.OPTIMAL }
-
-      | IntegerStrategy ->
-        Solution
-          { Variables = varMap
-            Objective = Number.Integer(int (solver.Objective().Value()))
-            Optimal = result.Equals Solver.ResultStatus.OPTIMAL }
-
-
-    | Solver.ResultStatus.INFEASIBLE as err ->
-      Error
-        { Code = int (err)
-          Message = "Infeasible" }
-
-    | Solver.ResultStatus.UNBOUNDED as err ->
-      Error
-        { Code = int (err)
-          Message = "Unbounded" }
-
-    | Solver.ResultStatus.ABNORMAL as err ->
-      Error
-        { Code = int (err)
-          Message = "Abnormal" }
-
-    | _ as err ->
-      Error
-        { Code = int (err)
-          Message = "Not Solved" }
-
-
-  let Solve (mdl: Model) : SolverResult =
+  let Solve (mdl: Model) : Solution =
     SolveWithCustomOptions mdl SolverOptions.Default

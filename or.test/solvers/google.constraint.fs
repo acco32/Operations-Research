@@ -1,69 +1,63 @@
 namespace Operations.Research.Test
 
-module ``Google Solver - Constraint`` =
+open System
+open TestTracks
+open Operations.Research.Types
+open Operations.Research.Models
+open Operations.Research.Solvers.Google.Constraint
 
-  open System
-  open Xunit
-  open FsUnit.Xunit
-  open Operations.Research.Types
-  open Operations.Research.Models
-  open Operations.Research.Solvers.Google.Constraint
+module GoogleSolverConstraint =
 
-  [<Fact>]
-  let ``Rabbits/Pheasants``() =
-    let r = Variable.integer "r" 0 100 |> toExpression
-    let p = Variable.integer "p" 0 100 |> toExpression
+  let tests =
+    suite
+      "Google Solver - Constraint"
+      [
 
-    let mdl =
-      Model.Default
-      |> DecisionVars [r; p]
-      |> Constraints [
-        r + p === 20
-        4*r + 2*p === 56
-      ]
+        (*
+            Rabbits & Pheasants.
 
-    let result = Solve mdl
+            Find the number of rabbits (r) and pheasants (p) given that there are
+            twenty animals total and fifty-six legs total. Rabbits have four legs,
+            pheasants have two.
 
-    match result with
-    | Solution sol ->
+            r + p   = 20
+            4r + 2p = 56
+        *)
+        test "Rabbits and Pheasants feasibility" (fun () ->
+          let r = Variable.integer "r" 0 100
+          let p = Variable.integer "p" 0 100
 
-        sol.Variables.ContainsKey(r.var().Name) |> should be True
-        sol.Variables.[r.var().Name] |> should equal 8.0
+          let mdl =
+            Model.empty
+            |> DecisionVars [ r; p ]
+            |> Constraints [ r + p === 20; 4 * r + 2 * p === 56 ]
 
-        sol.Variables.ContainsKey(p.var().Name) |> should be True
-        sol.Variables.[p.var().Name] |> should equal 12.0
+          let sol = Solve mdl
 
-    | Error e ->
-        Assert.True(false, sprintf "%A" e)
+          assertNotEqual Infeasible sol.Status "model should be feasible"
+          |> combine (assertEqual 8.0 sol.Values.["r"] "rabbits should be 8")
+          |> combine (assertEqual 12.0 sol.Values.["p"] "pheasants should be 12"))
 
-  [<Fact>]
-  let ``Solve with 10 second time limit``() =
-    let x = Variable.integer "x" 0 2 |> toExpression
-    let y = Variable.integer "y" 0 2 |> toExpression
-    let z = Variable.integer "z" 0 2 |> toExpression
+        (*
+            Sanity check that NotEqual constraints route through CP-SAT correctly,
+            with a generous time limit. CP-SAT is the only solver in this library
+            that supports the =/= operator.
+        *)
+        test "NotEqual constraint with 10 second time limit" (fun () ->
+          let x = Variable.integer "x" 0 2
+          let y = Variable.integer "y" 0 2
+          let z = Variable.integer "z" 0 2
 
-    let mdl =
-      Model.Default
-      |> DecisionVars [x; y; z]
-      |> Constraints [
-        x + -1*y =/= 0
-      ]
+          let mdl =
+            Model.empty |> DecisionVars [ x; y; z ] |> Constraints [ x + -1 * y =/= 0 ]
 
-    let solverOpts = { SolverOptions.Default with TimeLimit = 10 }
-    let result = SolveWithCustomOptions mdl solverOpts
+          let opts =
+            { SolverOptions.Default with
+                TimeLimit = 10 }
 
-    match result with
-    | Solution sol ->
-        sol.Variables.ContainsKey(x.var().Name) |> should be True
-        sol.Variables.[x.var().Name] |> should equal 1.0
+          let sol = SolveWithCustomOptions mdl opts
 
-        sol.Variables.ContainsKey(y.var().Name) |> should be True
-        sol.Variables.[y.var().Name] |> should equal 0.0
-
-        sol.Variables.ContainsKey(z.var().Name) |> should be True
-        sol.Variables.[z.var().Name] |> should equal 0.0
-
-    | Error e ->
-        Assert.True(false, sprintf "%A" e)
-
-
+          assertNotEqual Infeasible sol.Status "model should be feasible"
+          |> combine (assertEqual 1.0 sol.Values.["x"] "x should be 1")
+          |> combine (assertEqual 0.0 sol.Values.["y"] "y should be 0")
+          |> combine (assertEqual 0.0 sol.Values.["z"] "z should be 0")) ]

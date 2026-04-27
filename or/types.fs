@@ -1,238 +1,206 @@
 namespace Operations.Research
 
 module Types =
+
   open System
 
-  type Number =
-    | Integer of int
-    | Real of float
+  let private addCoeffs (a: Map<string, float>) (b: Map<string, float>) : Map<string, float> =
+    Map.fold
+      (fun acc name c ->
+        let total = (Map.tryFind name acc |> Option.defaultValue 0.0) + c
 
-    member this.toInt: int =
-      match this with
-      | Integer(i) -> i
-      | Real(i) -> int (i)
+        if total = 0.0 then
+          Map.remove name acc
+        else
+          Map.add name total acc)
+      a
+      b
 
-    member this.toFloat: float =
-      match this with
-      | Integer(f) -> float (f)
-      | Real(f) -> f
+  let private scaleCoeffs (s: float) (m: Map<string, float>) : Map<string, float> =
+    if s = 0.0 then
+      Map.empty
+    else
+      m |> Map.map (fun _ c -> s * c)
 
-  type Interval =
-    | Include
-    | Exclude
+  type Kind =
+    | Boolean
+    | Integer
+    | Real
 
-  type NumberBounds =
-    { Lower: Number
-      Upper: Number
-      Interval: Interval }
-
-    member this.withinBounds(x: obj) : bool =
-      match x with
-      | (:? int as i) -> i <= this.Upper.toInt && i >= this.Lower.toInt
-      | (:? float as f) -> f <= this.Upper.toFloat && f >= this.Lower.toFloat
-      | _ -> failwith "Can only parse integer or float values"
-
-
-
-  /// Operand in expression
-  type Term =
+  type Variable =
     { Name: string
-      Coefficient: Number
-      Bounds: NumberBounds
-      Exponent: Number
-      Value: Number
-      IsBoolean: bool }
+      Kind: Kind
+      Lower: float option
+      Upper: float option }
 
+    static member (*)(s: float, v: Variable) : LinearExpression =
+      if s = 0.0 then
+        { Coefficients = Map.empty
+          Constant = 0.0 }
+      else
+        { Coefficients = Map.ofList [ v.Name, s ]
+          Constant = 0.0 }
 
-  type Expression =
-    { Terms: Term list }
+    static member (*)(v: Variable, s: float) : LinearExpression = s * v
+    static member (*)(s: int, v: Variable) : LinearExpression = float s * v
+    static member (*)(v: Variable, s: int) : LinearExpression = float s * v
 
-    static member (*)(a: obj, b: obj) =
-      match a, b with
-      | (:? int as s), (:? Expression as t) when t.Terms.Length = 1 ->
-        { Terms =
-            [ { t.Terms.[0] with
-                  Coefficient = Number.Integer(s) } ] }
-      | (:? float as s), (:? Expression as t) when t.Terms.Length = 1 ->
-        { Terms =
-            [ { t.Terms.[0] with
-                  Coefficient = Number.Real(s) } ] }
-      | (:? Expression as t), (:? int as s) when t.Terms.Length = 1 ->
-        { Terms =
-            [ { t.Terms.[0] with
-                  Coefficient = Number.Integer(s) } ] }
-      | (:? Expression as t), (:? float as s) when t.Terms.Length = 1 ->
-        { Terms =
-            [ { t.Terms.[0] with
-                  Coefficient = Number.Real(s) } ] }
-      | _ -> failwith "Cannot use (*) operator on expression"
+    static member (~-)(v: Variable) : LinearExpression = -1.0 * v
 
-    static member (+)(a: obj, b: obj) =
-      match a, b with
-      | (:? int as s), (:? Expression as t) ->
-        { Terms =
-            [ { Name = sprintf "%d" s
-                Coefficient = Number.Integer(1)
-                Exponent = Number.Integer(1)
-                Bounds =
-                  { Lower = Integer(s)
-                    Upper = Integer(s)
-                    Interval = Include }
-                Value = Number.Integer(s)
-                IsBoolean = false } ]
-            @ t.Terms }
-      | (:? Expression as t), (:? int as s) ->
-        { Terms =
-            t.Terms
-            @ [ { Name = sprintf "%d" s
-                  Coefficient = Number.Integer(1)
-                  Exponent = Number.Integer(1)
-                  Bounds =
-                    { Lower = Integer(s)
-                      Upper = Integer(s)
-                      Interval = Include }
-                  Value = Number.Integer(s)
-                  IsBoolean = false } ] }
-      | (:? float as s), (:? Expression as t) ->
-        { Terms =
-            [ { Name = sprintf "%f" s
-                Coefficient = Number.Integer(1)
-                Exponent = Number.Integer(1)
-                Bounds =
-                  { Lower = Real(s)
-                    Upper = Real(s)
-                    Interval = Include }
-                Value = Number.Real(s)
-                IsBoolean = false } ]
-            @ t.Terms }
-      | (:? Expression as t), (:? float as s) ->
-        { Terms =
-            t.Terms
-            @ [ { Name = sprintf "%f" s
-                  Coefficient = Number.Integer(1)
-                  Exponent = Number.Integer(1)
-                  Bounds =
-                    { Lower = Real(s)
-                      Upper = Real(s)
-                      Interval = Include }
-                  Value = Number.Real(s)
-                  IsBoolean = false } ] }
-      | (:? Expression as s), (:? Expression as t) -> { Terms = s.Terms @ t.Terms }
-      | _ -> failwith "Cannot use (+) operator on expression"
+    static member (+)(a: Variable, b: Variable) : LinearExpression = (1.0 * a) + (1.0 * b)
+    static member (+)(a: Variable, b: float) : LinearExpression = (1.0 * a) + b
+    static member (+)(a: float, b: Variable) : LinearExpression = a + (1.0 * b)
+    static member (+)(a: Variable, b: int) : LinearExpression = (1.0 * a) + float b
+    static member (+)(a: int, b: Variable) : LinearExpression = float a + (1.0 * b)
 
-    member this.var() : Term =
-      match this.Terms.Length with
-      | 1 -> this.Terms.Head
-      | _ -> failwith "Can only return variable of expression with single value"
+    static member (-)(a: Variable, b: Variable) : LinearExpression = (1.0 * a) - (1.0 * b)
+    static member (-)(a: Variable, b: float) : LinearExpression = (1.0 * a) - b
+    static member (-)(a: float, b: Variable) : LinearExpression = a - (1.0 * b)
+    static member (-)(a: Variable, b: int) : LinearExpression = (1.0 * a) - float b
+    static member (-)(a: int, b: Variable) : LinearExpression = float a - (1.0 * b)
 
-  /// Term in model that can change
-  module Variable =
-    /// Boolean Variable
-    /// Special Term with only acceptable values being {0, 1}
-    let boolean (name: string) : Term =
-      { Name = name
-        Coefficient = Number.Integer(1)
-        Exponent = Number.Integer(1)
-        Bounds =
-          { Lower = Integer(0)
-            Upper = Integer(1)
-            Interval = Include }
-        Value = Number.Integer(0)
-        IsBoolean = true }
+  and LinearExpression =
+    { Coefficients: Map<string, float>
+      Constant: float }
 
-    /// Variable in the domain of real numbers
-    let real (name: string) (lowerBound: float) (upperBound: float) : Term =
-      { Name = name
-        Coefficient = Number.Real(1.0)
-        Exponent = Number.Real(1.0)
-        Bounds =
-          { Lower = Real(lowerBound)
-            Upper = Real(upperBound)
-            Interval = Include }
-        Value = Number.Real(Double.NegativeInfinity)
-        IsBoolean = false }
+    static member (+)(a: LinearExpression, b: LinearExpression) : LinearExpression =
+      { Coefficients = addCoeffs a.Coefficients b.Coefficients
+        Constant = a.Constant + b.Constant }
 
-    /// named variable with default bounds being the integer minimum and maximum of OS platform
-    let realDefault (name: string) : Term =
-      real name Double.NegativeInfinity Double.PositiveInfinity
+    static member (+)(a: LinearExpression, b: float) : LinearExpression = { a with Constant = a.Constant + b }
+    static member (+)(a: float, b: LinearExpression) : LinearExpression = b + a
+    static member (+)(a: LinearExpression, b: int) : LinearExpression = a + float b
+    static member (+)(a: int, b: LinearExpression) : LinearExpression = float a + b
+    static member (+)(a: LinearExpression, b: Variable) : LinearExpression = a + (1.0 * b)
+    static member (+)(a: Variable, b: LinearExpression) : LinearExpression = (1.0 * a) + b
 
-    /// Variable in the domain of integer numbers
-    let integer (name: string) (lowerBound: int) (upperBound: int) : Term =
-      { Name = name
-        Coefficient = Number.Real(1.0)
-        Exponent = Number.Real(1.0)
-        Bounds =
-          { Lower = Integer(lowerBound)
-            Upper = Integer(upperBound)
-            Interval = Include }
-        Value = Number.Integer(Int32.MinValue)
-        IsBoolean = false }
+    static member (~-)(e: LinearExpression) : LinearExpression =
+      { Coefficients = e.Coefficients |> Map.map (fun _ c -> -c)
+        Constant = -e.Constant }
 
-    /// named variable with default bounds being the integer minimum and maximum of OS platform
-    let integerDefault (name: string) : Term =
-      integer name Int32.MinValue Int32.MaxValue
+    static member (-)(a: LinearExpression, b: LinearExpression) : LinearExpression = a + (-b)
+    static member (-)(a: LinearExpression, b: float) : LinearExpression = a + (-b)
+    static member (-)(a: float, b: LinearExpression) : LinearExpression = a + (-b)
+    static member (-)(a: LinearExpression, b: int) : LinearExpression = a + float (-b)
+    static member (-)(a: int, b: LinearExpression) : LinearExpression = float a + (-b)
+    static member (-)(a: LinearExpression, b: Variable) : LinearExpression = a + (-(1.0 * b))
+    static member (-)(a: Variable, b: LinearExpression) : LinearExpression = (1.0 * a) + (-b)
 
-    /// sets the value of the term
-    let set (value: obj) (t: Term) : Term =
-      match value with
-      | :? bool as b when t.IsBoolean = true -> { t with Value = Number.Integer(1) }
-      | :? bool as b when t.IsBoolean = false -> { t with Value = Number.Integer(0) }
-      | :? int as i when t.IsBoolean = true -> invalidArg "value" "cannot set boolean variable with input"
-      | :? float as f when t.IsBoolean = true -> invalidArg "value" "cannot set boolean variable with input"
-      | :? int as i -> { t with Value = Number.Integer(i) }
-      | :? float as f -> { t with Value = Number.Real(f) }
-      | _ -> invalidArg "t" "Out of Range"
+    static member (*)(s: float, e: LinearExpression) : LinearExpression =
+      { Coefficients = scaleCoeffs s e.Coefficients
+        Constant = s * e.Constant }
 
-    /// The state of a boolean variable. All other values return an error.
-    let state (t: Term) : bool =
-      match t.IsBoolean with
-      | true when t.Value.toInt.Equals(1) -> true
-      | true when t.Value.toInt.Equals(0) -> false
-      | _ -> failwith "state function only can be used for Boolean variables"
+    static member (*)(e: LinearExpression, s: float) : LinearExpression = s * e
+    static member (*)(s: int, e: LinearExpression) : LinearExpression = float s * e
+    static member (*)(e: LinearExpression, s: int) : LinearExpression = float s * e
 
+  type ConstraintKind =
+    | Range of lower: float option * upper: float option
+    | NotEqual of value: float
 
-
-  /// Converts term to expression to be used in equations
-  let toExpression (t: Term) : Expression = { Terms = [ t ] }
-
-  /// Evaluate expression at its terms' value
-  let eval (exp: Expression) : Number =
-    let a =
-      List.map (fun term -> term.Coefficient.toFloat * Math.Pow(term.Value.toFloat, term.Exponent.toFloat)) exp.Terms
-
-    let result = List.reduce (+) a
-    Number.Real(result)
-
-
-  type Constraint = Constraint of Expression * bounds: NumberBounds
+  type Constraint =
+    { Name: string option
+      Expression: LinearExpression
+      Kind: ConstraintKind }
 
   type Goal =
-    /// Goal is unset
-    | Unset
-    /// Maximize the Objective Function
     | Maximize
-    /// Minimize the Objective Function
     | Minimize
 
   type Model =
-    { Variables: Expression list
-      Objective: Expression option
+    { Variables: Variable list
+      Objective: LinearExpression option
       Constraints: Constraint list
-      Goal: Goal }
+      Goal: Goal option }
 
-    static member Default =
-      { Variables = List.empty
+    static member empty: Model =
+      { Variables = []
         Objective = None
-        Constraints = List.Empty
-        Goal = Goal.Unset }
+        Constraints = []
+        Goal = None }
 
-  type SolverSolution =
-    { Objective: Number
-      Variables: Map<string, float>
-      Optimal: bool }
+  type Status =
+    | Optimal
+    | Feasible
+    | Infeasible
+    | Unbounded
+    | NotSolved
 
-  type SolverError = { Code: int; Message: string }
+  type Solution =
+    { Status: Status
+      Objective: float option
+      Values: Map<string, float> }
 
-  type SolverResult =
-    | Solution of SolverSolution
-    | Error of SolverError
+  module Variable =
+
+    let private cleanFloat (x: float) =
+      if Double.IsInfinity x || Double.IsNaN x then
+        None
+      else
+        Some x
+
+    let private cleanInt (x: int) =
+      if x = Int32.MinValue || x = Int32.MaxValue then
+        None
+      else
+        Some(float x)
+
+    /// Boolean variable, domain {0, 1}.
+    let boolean (name: string) : Variable =
+      { Name = name
+        Kind = Boolean
+        Lower = Some 0.0
+        Upper = Some 1.0 }
+
+    /// Real-valued variable. Infinities on either side become unbounded (None).
+    let real (name: string) (lower: float) (upper: float) : Variable =
+      { Name = name
+        Kind = Real
+        Lower = cleanFloat lower
+        Upper = cleanFloat upper }
+
+    /// Real-valued variable, fully unbounded.
+    let realFree (name: string) : Variable =
+      { Name = name
+        Kind = Real
+        Lower = None
+        Upper = None }
+
+    /// Integer-valued variable. Int32 min/max sentinels treated as unbounded.
+    let integer (name: string) (lower: int) (upper: int) : Variable =
+      { Name = name
+        Kind = Integer
+        Lower = cleanInt lower
+        Upper = cleanInt upper }
+
+    /// Integer-valued variable, fully unbounded.
+    let integerFree (name: string) : Variable =
+      { Name = name
+        Kind = Integer
+        Lower = None
+        Upper = None }
+
+
+  module LinearExpression =
+
+    let zero: LinearExpression =
+      { Coefficients = Map.empty
+        Constant = 0.0 }
+
+    let ofConstant (c: float) : LinearExpression =
+      { Coefficients = Map.empty
+        Constant = c }
+
+    let ofVariable (v: Variable) : LinearExpression = 1.0 * v
+
+    /// Evaluate at given variable values. Missing variables treated as 0.
+    let evaluate (values: Map<string, float>) (e: LinearExpression) : float =
+      e.Coefficients
+      |> Map.fold
+        (fun acc name coeff ->
+          let v = Map.tryFind name values |> Option.defaultValue 0.0
+          acc + coeff * v)
+        e.Constant
+
+    let inline sum (items: ^a seq) : LinearExpression =
+        items |> Seq.fold (fun (acc: LinearExpression) x -> acc + x) zero

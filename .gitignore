@@ -1,3 +1,5 @@
+.vscode
+.zed
 .idea
 **/obj/**
 **/bin/**
@@ -9,3 +11,4 @@ VERSION
 unreleased
 .notes
 *.snk
+**/*tar.gz
